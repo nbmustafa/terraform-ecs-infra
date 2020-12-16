@@ -1,0 +1,63 @@
+#!/usr/lib/env groovy
+@Library('common-library') _
+
+pipeline {
+	agent {label 'deploy'}
+
+    parameters {
+         choice(name: 'EnvironmentName', choices: ['dev', 'sit', 'ppte', 'prod'], description: 'Environment Type')
+    }
+
+    stages {
+        stage('Prepare') {
+            steps {
+                script {
+                    env.ENVIRONMENT = params.EnvironmentName
+                    load "./env.groovy"
+                }
+            }
+        }
+        stage('Check Infrastructure changes') {
+            steps {
+                echo "Checking Infrastructure changes"
+                sshagent(credentials: ['svc-account']) {
+                    script {
+                        env.PLAN_FILE_NAME = "terraform.plan"
+                        sh """
+                        echo '1' | TF_WORKSPACE=${env.ENVIRONMENT} \
+                        terraform init \
+                        -reconfigure \
+                        -backend-config "bucket=${env.BUCKET_NAME}" \
+                        -backend-config "dynamodb_table=${env.DYNAMODB_TABLE}" \
+                        -backend-config "key=${env.KEY}"
+                        """
+                        sh """terraform workspace select ${env.ENVIRONMENT} || terraform workspace new ${env.ENVIRONMENT}"""
+                        sh """
+                        terraform plan \
+                        -var "environment=${env.ENVIRONMENT}" \
+                        -var "app_name=${env.APP_NAME}" \
+                        -out=${env.PLAN_FILE_NAME}
+                        """
+                        env.INFRA_CHANGES = sh (script: """terraform show "${env.PLAN_FILE_NAME}" | grep "No changes. Infrastructure is up-to-date." || echo "New changes to apply" """, returnStdout: true).trim()
+                        echo "${env.INFRA_CHANGES}"
+                    }
+                }
+            }
+        }
+        stage('Apply') {
+            steps {
+                input "Apply this plan?"
+                echo 'Terraform Apply'
+                sh """
+                terraform apply -input=false -auto-approve "${env.PLAN_FILE_NAME}"
+                """
+            }
+        }
+    }
+
+    post {
+        cleanup {
+            cleanWs()
+        }
+    }
+}
