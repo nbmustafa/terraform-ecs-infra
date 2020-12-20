@@ -1,3 +1,6 @@
+# ----------------------------------------------------------
+# EC2 Security Group
+# ----------------------------------------------------------
 resource "aws_security_group" "ec2_sg" {
   name_prefix = "${local.prefix_name}-ec2-sg"
   description = "Allow ephemeral port range inbound traffic from alb"

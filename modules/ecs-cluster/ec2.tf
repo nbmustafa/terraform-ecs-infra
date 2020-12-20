@@ -172,7 +172,6 @@ resource "aws_kms_key" "axt-base-ami-kms-key" {
 # ----------------------------------------------------------
 # Launch_template
 # ----------------------------------------------------------
-
 resource "aws_launch_template" "ecs_launch_template" {
   name = "${local.prefix}-ecs-launch-template"
 
