@@ -1,12 +1,12 @@
 locals {
-  autoscaling_group_name = aws_cloudformation_stack.ecs-autoscaling-group.outputs["AsgName"]
-  ecs_cluster_name       = aws_ecs_cluster.ecs-cluster.name
+  autoscaling_group_name = aws_autoscaling_group.ecs_asg.name
+  ecs_cluster_name       = aws_ecs_cluster.ecs_cluster.name
 }
 
 # asg lifecycle hooks
 resource "aws_autoscaling_lifecycle_hook" "container-draining" {
   name                    = "container-draining-lifecycle-hook"
-  autoscaling_group_name  = local.autoscaling_group_name
+  autoscaling_group_name  = aws_autoscaling_group.ecs_asg.name
   default_result          = "ABANDON"
   heartbeat_timeout       = 900
   lifecycle_transition    = "autoscaling:EC2_INSTANCE_TERMINATING"

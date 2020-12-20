@@ -169,7 +169,11 @@ resource "aws_kms_key" "axt-base-ami-kms-key" {
   }
 }
 
-resource "aws_launch_template" "ecs-launch-template" {
+# ----------------------------------------------------------
+# Launch_template
+# ----------------------------------------------------------
+
+resource "aws_launch_template" "ecs_launch_template" {
   name = "${local.prefix}-ecs-launch-template"
 
   block_device_mappings {
@@ -203,117 +207,84 @@ resource "aws_launch_template" "ecs-launch-template" {
     enabled = true
   }
 
-  vpc_security_group_ids = [aws_security_group.ec2-sg.id]
+  vpc_security_group_ids = [aws_security_group.ec2_sg.id]
   user_data = base64encode(data.template_file.user-data.rendered)
 }
 
-resource "aws_cloudformation_stack" "ecs-autoscaling-group" {
-  name = "${local.prefix}-ecs-asg"
+# ----------------------------------------------------------
+# Auto-Scaling Group
+# ----------------------------------------------------------
+resource "aws_autoscaling_group" "ecs_asg" {
+  name                      = "${local.prefix}-ecs-asg"
+  min_size                  = var.asg_min_size
+  desired_capacity          = var.asg_desired_capacity
+  max_size                  = var.asg_max_size
+  default_cooldown          = 300
+  health_check_grace_period = 300
+  health_check_type         = "ELB"
+  protect_from_scale_in     = "false"
+  termination_policies      = ["OldestInstance", "Default"]
+  # vpc_zone_identifier       = data.aws_subnet_ids.subnet_ids.ids
+  vpc_zone_identifier       = join(",", data.aws_subnet_ids.subnet_ids.ids)
 
-  parameters = {
-    VPCZoneIdentifier = join(",", data.aws_subnet_ids.subnet-ids.ids)
+  mixed_instances_policy {
+    launch_template {
+      launch_template_specification {
+        launch_template_id = aws_launch_template.ecs_launch_template.id
+        version            = aws_launch_template.ecs_launch_template.latest_version
+      }
+
+      # override {
+      #   instance_type = "t3a.large"
+      #   # weighted_capacity = "2"
+      # }
+      # override {
+      #   instance_type     = "c3.large"
+      #   # weighted_capacity = "2"
+      # }
+
+    }
+    instances_distribution {
+      on_demand_allocation_strategy            = "prioritized"
+      on_demand_base_capacity                  = "1"
+      on_demand_percentage_above_base_capacity = "50"
+      spot_allocation_strategy                 = "lowest-price"
+      spot_instance_pools                      = "2"
+      spot_max_price                           = var.spot_price
+    }
   }
 
-  template_body = <<EOF
-{
-  "Parameters" : {
-    "VPCZoneIdentifier" : {
-      "Type": "List<AWS::EC2::Subnet::Id>"
-    }
-  },
-  "Resources": {
-    "ASG": {
-      "Type": "AWS::AutoScaling::AutoScalingGroup",
-      "Properties": {
-        "AutoScalingGroupName": "${var.service_name}-${var.app_name}-${var.environment}-ecs-asg",
-        "VPCZoneIdentifier": {
-          "Ref" : "VPCZoneIdentifier"
-        },
-        "MaxSize": ${var.asg_max_size},
-        "MinSize": ${var.asg_min_size},
-        "HealthCheckType": "EC2",
-        "HealthCheckGracePeriod": 300,
-        "MixedInstancesPolicy" : {
-          "InstancesDistribution": {
-            "OnDemandAllocationStrategy": "prioritized",
-            "OnDemandBaseCapacity": 0,
-            "OnDemandPercentageAboveBaseCapacity": ${var.ondemand_percentage},
-            "SpotAllocationStrategy": "lowest-price",
-            "SpotInstancePools": 2,
-            "SpotMaxPrice": "${var.spot_price}"
-          },
-          "LaunchTemplate": {
-            "LaunchTemplateSpecification": {
-              "LaunchTemplateId": "${aws_launch_template.ecs-launch-template.id}",
-              "Version": "${aws_launch_template.ecs-launch-template.latest_version}"
-            }
-          }
-        },
-        "Tags": [
-        {
-          "Key": "Name",
-          "Value": "${var.service_name}-${var.app_name}-${var.environment}-instance",
-          "PropagateAtLaunch": true
-        },
-        {
-          "Key": "ApplicationID",
-          "Value": "${var.application_id}",
-          "PropagateAtLaunch": true
-        },
-        {
-          "Key": "CostCentre",
-          "Value": "${var.cost_centre}",
-          "PropagateAtLaunch": true
-        },
-        {
-          "Key": "PowerMgt",
-          "Value": "${var.asg_power_mgt_code}",
-          "PropagateAtLaunch": true
-        }
-        ]
-      },
-      "CreationPolicy": {
-        "AutoScalingCreationPolicy": {
-          "MinSuccessfulInstancesPercent": 100
-        },
-        "ResourceSignal": {
-          "Count": ${var.asg_desired_capacity},
-          "Timeout": "PT20M"
-        }
-      },
-      "UpdatePolicy": {
-        "AutoScalingRollingUpdate": {
-          "MinInstancesInService": ${var.asg_min_size},
-          "MaxBatchSize": 2,
-          "MinSuccessfulInstancesPercent": 80,
-          "PauseTime": "PT10M",
-          "WaitOnResourceSignals": true,
-          "SuspendProcesses": ["AlarmNotification", "ScheduledActions", "HealthCheck", "ReplaceUnhealthy", "AZRebalance"]
-        }
-      }
-    }
-  },
-  "Outputs": {
-    "AsgName": {
-      "Description": "The name of the auto scaling group",
-       "Value": {
-          "Ref": "ASG"
-      }
-    }
-  }
-}
-EOF
-
-  # create a new one before destroy old one when a resource must be re-created upon a requested change
   lifecycle {
+    ignore_changes        = [desired_capacity]
     create_before_destroy = true
   }
+
+  instance_refresh {
+    strategy = "Rolling"
+    preferences {
+      min_healthy_percentage = 50
+    }
+    triggers = ["tag"]
+  }
+
+  tags       = local.asg_tags
+  depends_on = [aws_launch_template.ecs-launch-template]
+
+  timeouts {
+    delete = "20m"
+  }
 }
 
+# ----------------------------------------------------------
+# locals
+# ----------------------------------------------------------
 locals {
   autoscaling_enabled = var.enabled && var.autoscaling_policies_enabled ? true : false
 }
 
+# ----------------------------------------------------------
+# Auto-scaling group Policies
+# ----------------------------------------------------------
 resource "aws_autoscaling_policy" "scale_up" {
   count                  = local.autoscaling_enabled ? 1 : 0
   name                   = "${local.prefix}-ecs-cluster-scale-up"
@@ -321,7 +292,7 @@ resource "aws_autoscaling_policy" "scale_up" {
   adjustment_type        = var.scale_up_adjustment_type
   policy_type            = var.scale_up_policy_type
   cooldown               = var.scale_up_cooldown_seconds
-  autoscaling_group_name = aws_cloudformation_stack.ecs-autoscaling-group.outputs["AsgName"]
+  autoscaling_group_name = aws_autoscaling_group.ecs_asg.name
 }
 
 resource "aws_autoscaling_policy" "scale_down" {
@@ -331,7 +302,7 @@ resource "aws_autoscaling_policy" "scale_down" {
   adjustment_type        = var.scale_down_adjustment_type
   policy_type            = var.scale_down_policy_type
   cooldown               = var.scale_down_cooldown_seconds
-  autoscaling_group_name = aws_cloudformation_stack.ecs-autoscaling-group.outputs["AsgName"]
+  autoscaling_group_name = aws_autoscaling_group.ecs_asg.name
 }
 
 resource "aws_cloudwatch_metric_alarm" "cpu_high" {
@@ -348,7 +319,7 @@ resource "aws_cloudwatch_metric_alarm" "cpu_high" {
   alarm_actions       = ["${aws_autoscaling_policy.scale_up.0.arn}"]
 
   dimensions = {
-    AutoScalingGroupName = aws_cloudformation_stack.ecs-autoscaling-group.outputs["AsgName"]
+    AutoScalingGroupName = aws_autoscaling_group.ecs_asg.name
   }
 }
 
@@ -366,6 +337,6 @@ resource "aws_cloudwatch_metric_alarm" "cpu_low" {
   alarm_actions       = ["${aws_autoscaling_policy.scale_down.0.arn}"]
 
   dimensions = {
-    AutoScalingGroupName = aws_cloudformation_stack.ecs-autoscaling-group.outputs["AsgName"]
+    AutoScalingGroupName = aws_autoscaling_group.ecs_asg.name
   }
 }

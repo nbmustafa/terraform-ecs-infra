@@ -114,7 +114,7 @@ variable "ondemand_percentage" {
 
 variable "spot_price" {
   type        = string
-  description = "Stage name for namespacing the resources created in AWS"
+  description = "Maximum price per unit hour to pay for the Spot instances"
   default     = "0.50"
 }
 

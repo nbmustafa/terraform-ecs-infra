@@ -21,7 +21,7 @@ data "template_file" "user-data" {
   template = file("${path.module}/ec2/user-data.sh")
 
   vars = {
-    cluster_name = aws_ecs_cluster.ecs-cluster.name
+    cluster_name = aws_ecs_cluster.ecs_cluster.name
     proxy_host   = var.proxy_host
     aws_region   = data.aws_region.current.name
     stack_name   = "${var.service_name}-${var.app_name}-${var.environment}-ecs-asg"
@@ -30,6 +30,10 @@ data "template_file" "user-data" {
 }
 
 data "aws_subnet_ids" "subnet-ids" {
+  vpc_id = data.aws_vpc.vpc.id
+}
+
+data "aws_subnet_ids" "subnet_ids" {
   vpc_id = data.aws_vpc.vpc.id
 }
 
