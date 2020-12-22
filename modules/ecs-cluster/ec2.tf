@@ -175,7 +175,7 @@ resource "aws_autoscaling_group" "ecs_asg" {
       # instance_warmup = 120 
       min_healthy_percentage  = 50
     }
-    triggers = ["tag"]
+    # triggers = ["tag"]
   }
 
   depends_on = [aws_launch_template.ecs_launch_template]
