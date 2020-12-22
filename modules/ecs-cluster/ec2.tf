@@ -222,8 +222,8 @@ resource "aws_autoscaling_group" "ecs_asg" {
   health_check_type         = "ELB"
   protect_from_scale_in     = "false"
   termination_policies      = ["OldestInstance", "Default"]
-  # vpc_zone_identifier       = data.aws_subnet_ids.subnet_ids.ids
-  vpc_zone_identifier       = join(",", data.aws_subnet_ids.subnet_ids.ids)
+  vpc_zone_identifier       = data.aws_subnet_ids.subnet_ids.ids
+  # vpc_zone_identifier       = join(",", data.aws_subnet_ids.subnet_ids.ids)
 
   mixed_instances_policy {
     launch_template {
