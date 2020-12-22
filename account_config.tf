@@ -7,7 +7,7 @@ locals {
   iam_name_prefix         = "abc"
   service_name            = "xyz"
   disable_api_termination = "false"
-  alb_access_logs_bucket  = "${local.account_id}-alb-log-bucket"
+  # alb_access_logs_bucket  = "${local.account_id}-alb-log-bucket"
   proxy_host              = ""
 
   account_configs = {
