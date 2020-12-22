@@ -25,7 +25,7 @@ resource "aws_iam_role" "ecs_instance_role" {
 }
 
 resource "aws_iam_role_policy" "test_policy" {
-  name = "test_policy"
+  name = "AmazonEC2ContainerServiceforEC2Role"
   role = aws_iam_role.ecs_instance_role.id
 
   policy = <<EOF
