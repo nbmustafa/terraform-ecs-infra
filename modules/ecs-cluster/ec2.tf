@@ -199,7 +199,7 @@ resource "aws_launch_template" "ecs_launch_template" {
     arn = aws_iam_instance_profile.ecs-instance-profile.arn
   }
 
-  image_id = data.aws_ami.hip-ami.id
+  image_id = data.aws_ami.hip_ami.id
   instance_type = var.instance_type
 
   monitoring {
