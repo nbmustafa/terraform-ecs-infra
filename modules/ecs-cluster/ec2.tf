@@ -71,7 +71,7 @@ data "aws_iam_policy_document" "kms_key_policy" {
     principals {
       type = "AWS"
       identifiers = [
-        aws_iam_role.ecs_instance_profile.arn
+        aws_iam_role.ecs_instance_role.arn
       ]
     }
     resources = [
@@ -90,7 +90,6 @@ data "aws_iam_policy_document" "kms_key_policy" {
       type = "AWS"
       identifiers = [
         aws_iam_role.ecs_instance_role.arn,
-        aws_iam_role.ecs_instance_profile.arn,
         "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling"
       ]
     }
