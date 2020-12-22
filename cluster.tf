@@ -1,7 +1,7 @@
 module "ecs-cluster" {
   source = "./modules/ecs-cluster"
 
-  environment             = terraform.workspace
+  environment             = var.environment
   # alb_access_logs_bucket  = local.alb_access_logs_bucket
   app_name                = local.app_name
   application_id          = local.application_id

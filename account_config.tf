@@ -11,7 +11,6 @@ locals {
   proxy_host              = ""
 
   account_configs = {
-    
     develop = {
       asg_max_size         = "2"
       asg_min_size         = "1"
@@ -47,7 +46,14 @@ locals {
       spot_price           = "0.50"
       asg_desired_capacity = "2"
     }
-
   }
+
+  tags = {
+    ApplicationID = local.application_id
+    CostCentre    = local.cost_centre
+    ServiceName   = local.service_name
+    Environment   = var.environment
+  }
+
   account_config = local.account_configs[var.environment]
 }

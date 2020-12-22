@@ -11,9 +11,8 @@ variable "app_name" {
 }
 
 variable "environment" {
-  default     = "develop"
-  type        = string
-  description = "The development stage this deployment is for, e.g. dev01, sit02, prod01"
+  type    = string
+  default = "develop"
 }
 
 variable "aws_access_key" {}

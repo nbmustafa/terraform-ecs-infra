@@ -168,7 +168,7 @@ resource "aws_launch_template" "ecs_launch_template" {
   block_device_mappings {
     device_name = "/dev/xvda"
     ebs {
-      volume_size = 20
+      volume_size = 30
       encrypted   = true
       kms_key_id  = aws_kms_key.ami_kms_key.arn
     }
@@ -177,7 +177,7 @@ resource "aws_launch_template" "ecs_launch_template" {
   block_device_mappings {
     device_name = "/dev/xvdcz"
     ebs {
-      volume_size = 22
+      volume_size = 30
       encrypted   = true
       kms_key_id  = aws_kms_key.ami_kms_key.arn
     }
@@ -210,11 +210,10 @@ resource "aws_autoscaling_group" "ecs_asg" {
   max_size                  = var.asg_max_size
   default_cooldown          = 300
   health_check_grace_period = 300
-  health_check_type         = "ELB"
+  health_check_type         = "EC2"
   protect_from_scale_in     = "false"
   termination_policies      = ["OldestInstance", "Default"]
   vpc_zone_identifier       = data.aws_subnet_ids.subnet_ids.ids
-  # vpc_zone_identifier       = join(",", data.aws_subnet_ids.subnet_ids.ids)
 
   mixed_instances_policy {
     launch_template {
@@ -262,13 +261,15 @@ resource "aws_autoscaling_group" "ecs_asg" {
     delete = "20m"
   }
 
-  tags = merge(
-    {
-      Name      = "${local.prefix}-auto-scaling-group"
-      Component = "Auto-Scaling-Group"
-    },
-    local.tags
-  )
+  # tags = merge(
+  #   {
+  #     Name      = "${local.prefix}-auto-scaling-group"
+  #     Component = "Auto-Scaling-Group"
+  #   },
+  #   local.tags
+  # )
+  tags = [local.tags]
+
 }
 
 # ----------------------------------------------------------

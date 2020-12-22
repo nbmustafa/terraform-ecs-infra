@@ -1,3 +1,4 @@
+/*
 # ----------------------------------------------------------
 # ALB Security Group
 # ----------------------------------------------------------
@@ -89,7 +90,7 @@ resource "aws_lb_listener" "alb_https_listener" {
 # ----------------------------------------------------------
 data "aws_route53_zone" "hosted_zone" {
   name         = var.record_set_name
-  private_zone = true
+  private_zone = false // depends on your case
 }
 
 resource "aws_route53_record" "alb_record" {
@@ -103,3 +104,4 @@ resource "aws_route53_record" "alb_record" {
     evaluate_target_health = false
   }
 }
+*/

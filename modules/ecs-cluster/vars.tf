@@ -85,7 +85,7 @@ variable "app_name" {
 variable "environment" {
   type        = string
   description = "Environment name for namespacing the resources created in AWS"
-  default     = "dev"
+  default     = "develop"
 }
 
 variable "owner" {
