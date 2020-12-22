@@ -109,7 +109,7 @@ data "aws_iam_policy_document" "kms_key_policy" {
     condition {
       test     = "ForAnyValue:StringEquals"
       variable = "kms:ViaService"
-      values   = ["ec2.ap-southeast-2.amazonaws.com"]
+      values   = ["${local.region}.amazonaws.com"]
     }
   }
   statement {
@@ -151,7 +151,7 @@ data "aws_iam_policy_document" "kms_key_policy" {
     condition {
       test     = "StringNotEquals"
       variable = "aws:RequestedRegion"
-      values   = ["ap-southeast-2"]
+      values   = ["${local.region}"]
     }
   }
 }
