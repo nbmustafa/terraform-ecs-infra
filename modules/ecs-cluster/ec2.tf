@@ -81,7 +81,7 @@ resource "aws_iam_role_policy" "ecsServiceRolePolicy" {
 
 resource "aws_iam_instance_profile" "ecsInstanceProfile" {
   name = "${local.prefix}-ecsInstanceProfile"
-  role = aws_iam_role.ecsInstanceRole.name
+  role = aws_iam_role.ecs_instance_role.name
 }
 
 variable "ecsServiceRoleAssumeRolePolicy" {
@@ -203,7 +203,7 @@ resource "aws_launch_template" "ecs_launch_template" {
   disable_api_termination = var.disable_api_termination
 
   iam_instance_profile {
-    arn = aws_iam_instance_profile.ecs_instance_profile.arn
+    arn = aws_iam_instance_profile.ecsInstanceProfile.arn
   }
 
   image_id      = data.aws_ssm_parameter.ecs_ami.value
