@@ -4,10 +4,10 @@ variable "asg_min_size" {
   default     = 2
 }
 
-variable "alb_access_logs_bucket" {
-  type        = string
-  description = "The name of the S3 bucket where the ALB access logs are to be outputted to"
-}
+# variable "alb_access_logs_bucket" {
+#   type        = string
+#   description = "The name of the S3 bucket where the ALB access logs are to be outputted to"
+# }
 
 variable "asg_max_size" {
   type        = string
