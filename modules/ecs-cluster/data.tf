@@ -11,12 +11,6 @@ data "aws_vpc" "vpc" {
   }
 }
 
-# data "aws_ami" "hip-ami" {
-#   most_recent = true
-#   name_regex  = "^hip-hui-amznecs.*"
-#   owners      = ["522412867873"]
-# }
-
 data "aws_ssm_parameter" "ecs_ami" {
   name = "/aws/service/ecs/optimized-ami/amazon-linux-2/recommended/image_id"
 }
