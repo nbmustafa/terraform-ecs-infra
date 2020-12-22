@@ -7,7 +7,7 @@ data "aws_caller_identity" "current" {
 data "aws_vpc" "vpc" {
   filter {
     name   = "tag:Name"
-    values = ["*private*"]
+    values = ["*default*"]
   }
 }
 
@@ -26,9 +26,6 @@ data "template_file" "user-data" {
   }
 }
 
-data "aws_subnet_ids" "subnet-ids" {
-  vpc_id = data.aws_vpc.vpc.id
-}
 
 data "aws_subnet_ids" "subnet_ids" {
   vpc_id = data.aws_vpc.vpc.id

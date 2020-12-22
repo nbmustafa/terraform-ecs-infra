@@ -71,7 +71,7 @@ resource "aws_lambda_function" "container-draining_lambda" {
 
   vpc_config {
     security_group_ids = [data.aws_security_group.vpc-default-sg.id]
-    subnet_ids         = data.aws_subnet_ids.subnet-ids.ids
+    subnet_ids         = data.aws_subnet_ids.subnet_ids.ids
   }
 
   environment {
