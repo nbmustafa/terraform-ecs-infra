@@ -48,11 +48,11 @@ resource "aws_lb" "alb" {
 
   subnets = data.aws_subnet_ids.subnet_ids.ids
 
-  access_logs {
-    bucket  = var.alb_access_logs_bucket
-    prefix  = "${local.prefix}-alb"
-    enabled = true
-  }
+  # access_logs {
+  #   bucket  = var.alb_access_logs_bucket
+  #   prefix  = "${local.prefix}-alb"
+  #   enabled = true
+  # }
 
   tags = merge(
     {

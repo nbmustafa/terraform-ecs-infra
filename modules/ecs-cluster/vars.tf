@@ -48,7 +48,6 @@ variable "proxy_host" {
 variable "iam_policy_arn" {
   type        = list(string)
   description = "IAM Policies to attach to the IAM role to be used by the EC2 instances launched"
-  default     = ["CSOPSRestrictionPolicy", "HIPIAMRestrictionPolicy", "HIPBasePolicy"]
 }
 
 variable "certificate_arn" {
@@ -58,7 +57,7 @@ variable "certificate_arn" {
 
 variable "iam_name_prefix" {
   type        = string
-  description = "IAM role with format <iam_name_prefix_>ProvisioningInstanceProfile. Needs the same policies as HIPProvisioningInstanceProfile"
+  description = "IAM role with format <iam_name_prefix_>ProvisioningInstanceProfile"
 }
 
 variable "cost_centre" {
@@ -90,7 +89,7 @@ variable "environment" {
 }
 
 variable "owner" {
-  default     = "CCT Support"
+  default     = "Nash Support"
   type        = string
   description = "The resource owner to tag all the resources with"
 }

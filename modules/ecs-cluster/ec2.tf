@@ -1,4 +1,4 @@
-data "aws_iam_role" "provisioning-instance-profile" {
+data "aws_iam_role" "provisioning_instance_profile" {
   name = "${var.iam_name_prefix}ProvisioningInstanceProfile"
 }
 
@@ -21,27 +21,26 @@ data "aws_iam_policy_document" "ecs-instance-role-policy" {
   }
 }
 
-resource "aws_iam_role" "ecs-instance-role" {
+resource "aws_iam_role" "ecs_instance_role" {
   name                  = "${local.prefix}-ecs-instance-role"
   force_detach_policies = true
-
-  assume_role_policy = data.aws_iam_policy_document.ecs-instance-role-policy.json
+  assume_role_policy    = data.aws_iam_policy_document.ecs-instance-role-policy.json
 }
 
-resource "aws_iam_role_policy_attachment" "ecs-role-policy-attachment" {
-  role       = aws_iam_role.ecs-instance-role.name
+resource "aws_iam_role_policy_attachment" "ecs_role_policy_attachment" {
+  role       = aws_iam_role.ecs_instance_role.name
   policy_arn = data.aws_iam_policy.ec2-container-service-policy.arn
 }
 
-resource "aws_iam_role_policy_attachment" "hip-role-policy-attachment" {
-  role       = aws_iam_role.ecs-instance-role.name
-  count      = length(var.iam_policy_arn)
-  policy_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/${var.iam_policy_arn[count.index]}"
-}
+# resource "aws_iam_role_policy_attachment" "hip_role_policy_attachment" {
+#   role       = aws_iam_role.ecs_instance_role.name
+#   count      = length(var.iam_policy_arn)
+#   policy_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/${var.iam_policy_arn[count.index]}"
+# }
 
-resource "aws_iam_instance_profile" "ecs-instance-profile" {
+resource "aws_iam_instance_profile" "ecs_instance_profile" {
   name = "${local.prefix}-ecs-instance-profile"
-  role = aws_iam_role.ecs-instance-role.name
+  role = aws_iam_role.ecs_instance_role.name
 }
 
 data "aws_iam_policy_document" "kms_key_policy" {
@@ -81,7 +80,7 @@ data "aws_iam_policy_document" "kms_key_policy" {
     principals {
       type = "AWS"
       identifiers = [
-        data.aws_iam_role.provisioning-instance-profile.arn
+        data.aws_iam_role.provisioning_instance_profile.arn
       ]
     }
     resources = [
@@ -99,8 +98,8 @@ data "aws_iam_policy_document" "kms_key_policy" {
     principals {
       type = "AWS"
       identifiers = [
-        aws_iam_role.ecs-instance-role.arn,
-        data.aws_iam_role.provisioning-instance-profile.arn,
+        aws_iam_role.ecs_instance_role.arn,
+        data.aws_iam_role.provisioning_instance_profile.arn,
         "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling"
       ]
     }
@@ -123,7 +122,7 @@ data "aws_iam_policy_document" "kms_key_policy" {
     principals {
       type = "AWS"
       identifiers = [
-        aws_iam_role.ecs-instance-role.arn,
+        aws_iam_role.ecs_instance_role.arn,
         "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling"
       ]
     }
@@ -157,7 +156,7 @@ data "aws_iam_policy_document" "kms_key_policy" {
   }
 }
 
-resource "aws_kms_key" "axt-base-ami-kms-key" {
+resource "aws_kms_key" "ami_kms_key" {
   description         = "Key used to encrypt the EBS snapshots when copying the HIP base AMI"
   enable_key_rotation = true
 
@@ -180,7 +179,7 @@ resource "aws_launch_template" "ecs_launch_template" {
     ebs {
       volume_size = 20
       encrypted   = true
-      kms_key_id  = aws_kms_key.axt-base-ami-kms-key.arn
+      kms_key_id  = aws_kms_key.ami_kms_key.arn
     }
   }
 
@@ -189,14 +188,14 @@ resource "aws_launch_template" "ecs_launch_template" {
     ebs {
       volume_size = 22
       encrypted   = true
-      kms_key_id  = aws_kms_key.axt-base-ami-kms-key.arn
+      kms_key_id  = aws_kms_key.ami_kms_key.arn
     }
   }
 
   disable_api_termination = var.disable_api_termination
 
   iam_instance_profile {
-    arn = aws_iam_instance_profile.ecs-instance-profile.arn
+    arn = aws_iam_instance_profile.ecs_instance_profile.arn
   }
 
   image_id      = data.aws_ssm_parameter.ecs_ami.value
