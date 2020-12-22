@@ -29,12 +29,6 @@ resource "aws_iam_role_policy_attachment" "ecs_role_policy_attachment" {
   policy_arn = data.aws_iam_policy.ec2_container_service_policy.arn
 }
 
-# resource "aws_iam_role_policy_attachment" "hip_role_policy_attachment" {
-#   role       = aws_iam_role.ecs_instance_role.name
-#   count      = length(var.iam_policy_arn)
-#   policy_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/${var.iam_policy_arn[count.index]}"
-# }
-
 resource "aws_iam_instance_profile" "ecs_instance_profile" {
   name = "${local.prefix}-ecs-instance-profile"
   role = aws_iam_role.ecs_instance_role.name
@@ -56,34 +50,34 @@ data "aws_iam_policy_document" "kms_key_policy" {
       "*"
     ]
   }
-  statement {
-    sid = "Allow access for Key Administrators"
-    actions = [
-      "kms:Create*",
-      "kms:Describe*",
-      "kms:Enable*",
-      "kms:List*",
-      "kms:Put*",
-      "kms:Update*",
-      "kms:Revoke*",
-      "kms:Disable*",
-      "kms:Get*",
-      "kms:Delete*",
-      "kms:TagResource",
-      "kms:UntagResource",
-      "kms:ScheduleKeyDeletion",
-      "kms:CancelKeyDeletion"
-    ]
-    principals {
-      type = "AWS"
-      identifiers = [
-        data.aws_iam_role.provisioning_instance_profile.arn
-      ]
-    }
-    resources = [
-      "*"
-    ]
-  }
+  # statement {
+  #   sid = "Allow access for Key Administrators"
+  #   actions = [
+  #     "kms:Create*",
+  #     "kms:Describe*",
+  #     "kms:Enable*",
+  #     "kms:List*",
+  #     "kms:Put*",
+  #     "kms:Update*",
+  #     "kms:Revoke*",
+  #     "kms:Disable*",
+  #     "kms:Get*",
+  #     "kms:Delete*",
+  #     "kms:TagResource",
+  #     "kms:UntagResource",
+  #     "kms:ScheduleKeyDeletion",
+  #     "kms:CancelKeyDeletion"
+  #   ]
+  #   principals {
+  #     type = "AWS"
+  #     identifiers = [
+  #       data.aws_iam_role.provisioning_instance_profile.arn
+  #     ]
+  #   }
+  #   resources = [
+  #     "*"
+  #   ]
+  # }
   statement {
     sid = "Autoscale to decrypt on startup"
     actions = [
@@ -96,7 +90,7 @@ data "aws_iam_policy_document" "kms_key_policy" {
       type = "AWS"
       identifiers = [
         aws_iam_role.ecs_instance_role.arn,
-        data.aws_iam_role.provisioning_instance_profile.arn,
+        # data.aws_iam_role.provisioning_instance_profile.arn,
         "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling"
       ]
     }
