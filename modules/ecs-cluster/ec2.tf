@@ -171,7 +171,7 @@ resource "aws_autoscaling_group" "ecs_asg" {
   instance_refresh {
     strategy = "Rolling"
     preferences {
-      instance_warmup = 120 
+      # instance_warmup = 120 
       min_healthy_percentage  = 50
     }
     triggers = ["tag"]
