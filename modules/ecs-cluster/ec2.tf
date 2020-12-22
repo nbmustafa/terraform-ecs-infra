@@ -71,7 +71,7 @@ data "aws_iam_policy_document" "kms_key_policy" {
     principals {
       type = "AWS"
       identifiers = [
-        data.aws_iam_role.ecs_instance_profile.arn
+        aws_iam_role.ecs_instance_profile.arn
       ]
     }
     resources = [
