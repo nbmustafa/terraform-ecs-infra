@@ -2,7 +2,7 @@
 # ALB Security Group
 # ----------------------------------------------------------
 resource "aws_security_group" "alb_sg" {
-  name_prefix = "${local.prefix_name}-alb-sg"
+  name_prefix = "${local.prefix}-alb-sg"
   description = "Allow inbound traffic to alb"
   vpc_id      = data.aws_vpc.vpc.id
 
