@@ -19,7 +19,7 @@ resource "aws_security_group" "alb_sg" {
   }
 }
 
-resource "aws_security_group_rule" "ingress" {
+resource "aws_security_group_rule" "alb_ingress" {
   type              = "ingress"
   from_port         = 443
   to_port           = 443
@@ -28,7 +28,7 @@ resource "aws_security_group_rule" "ingress" {
   security_group_id = aws_security_group.alb_sg.id
 }
 
-resource "aws_security_group_rule" "egress" {
+resource "aws_security_group_rule" "alb_egress" {
   type              = "egress"
   from_port         = 0
   to_port           = 0
