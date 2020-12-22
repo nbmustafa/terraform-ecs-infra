@@ -13,7 +13,6 @@ data "aws_vpc" "vpc" {
 
 data "aws_ssm_parameter" "ecs_ami" {
   name = "/aws/service/ecs/optimized-ami/amazon-linux-2/recommended/image_id"
-}
 
 data "template_file" "user-data" {
   template = file("${path.module}/ec2/user-data.sh")
