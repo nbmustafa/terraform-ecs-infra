@@ -36,7 +36,7 @@ resource "aws_iam_role_policy" "test_policy" {
         "ecs:*",
         "ecr:*",
         "ec2:*",
-        "log:*",
+        "log:*"
       ],
       "Effect": "Allow",
       "Resource": "*"
