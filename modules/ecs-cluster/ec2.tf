@@ -1,12 +1,9 @@
-data "aws_iam_role" "provisioning_instance_profile" {
-  name = "${var.iam_name_prefix}ProvisioningInstanceProfile"
-}
 
-data "aws_iam_policy" "ec2-container-service-policy" {
+data "aws_iam_policy" "ec2_container_service_policy" {
   arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
 }
 
-data "aws_iam_policy_document" "ecs-instance-role-policy" {
+data "aws_iam_policy_document" "ecs_instance_role_policy" {
   statement {
     actions = [
       "sts:AssumeRole"
@@ -24,12 +21,12 @@ data "aws_iam_policy_document" "ecs-instance-role-policy" {
 resource "aws_iam_role" "ecs_instance_role" {
   name                  = "${local.prefix}-ecs-instance-role"
   force_detach_policies = true
-  assume_role_policy    = data.aws_iam_policy_document.ecs-instance-role-policy.json
+  assume_role_policy    = data.aws_iam_policy_document.ecs_instance_role_policy.json
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_role_policy_attachment" {
   role       = aws_iam_role.ecs_instance_role.name
-  policy_arn = data.aws_iam_policy.ec2-container-service-policy.arn
+  policy_arn = data.aws_iam_policy.ec2_container_service_policy.arn
 }
 
 # resource "aws_iam_role_policy_attachment" "hip_role_policy_attachment" {
