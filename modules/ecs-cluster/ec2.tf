@@ -16,6 +16,26 @@ data "aws_iam_policy_document" "ecs_instance_role_policy" {
       ]
     }
   }
+
+  statement {
+    sid = "Amazon EC2 Container Service for EC2 Role"
+    actions = [
+      "ecs:*",
+      "ecr:*",
+      "ec2:*",
+      "log:*",
+    ]
+    principals {
+      type = "Service"
+      identifiers = [
+        "ec2.amazonaws.com",
+        "ecs.amazonaws.com"
+      ]
+    }
+    resources = [
+      "*"
+    ]
+  }
 }
 
 resource "aws_iam_role" "ecs_instance_role" {
