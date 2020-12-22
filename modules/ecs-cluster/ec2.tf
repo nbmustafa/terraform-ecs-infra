@@ -59,8 +59,13 @@ EOF
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_agent" {
-  role       = "aws_iam_role.ecs_instance_role.name"
+  role       = aws_iam_role.ecs_instance_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
+}
+
+resource "aws_iam_instance_profile" "ecsInstanceProfile" {
+  name = "${local.prefix}-ecsInstanceProfile"
+  role = aws_iam_role.ecs_instance_role.name
 }
 
 # resource "aws_iam_instance_profile" "ecs_instance_profile" {
@@ -77,11 +82,6 @@ resource "aws_iam_role_policy" "ecsServiceRolePolicy" {
   name   = "${local.prefix}-ecsServiceRolePolicy"
   role   = aws_iam_role.ecsServiceRole.id
   policy = var.ecsServiceRolePolicy
-}
-
-resource "aws_iam_instance_profile" "ecsInstanceProfile" {
-  name = "${local.prefix}-ecsInstanceProfile"
-  role = aws_iam_role.ecs_instance_role.name
 }
 
 variable "ecsServiceRoleAssumeRolePolicy" {
