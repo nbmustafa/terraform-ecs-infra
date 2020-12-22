@@ -45,10 +45,10 @@ variable "proxy_host" {
   default     = "forwardproxy"
 }
 
-variable "iam_policy_arn" {
-  type        = list(string)
-  description = "IAM Policies to attach to the IAM role to be used by the EC2 instances launched"
-}
+# variable "iam_policy_arn" {
+#   type        = list(string)
+#   description = "IAM Policies to attach to the IAM role to be used by the EC2 instances launched"
+# }
 
 variable "certificate_arn" {
   type        = string
