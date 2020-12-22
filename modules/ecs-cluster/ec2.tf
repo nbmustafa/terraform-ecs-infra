@@ -10,7 +10,6 @@ data "aws_iam_policy_document" "ecs_instance_role_policy" {
       type = "Service"
       identifiers = [
         "ec2.amazonaws.com",
-        "ecs.amazonaws.com"
       ]
     }
   }
@@ -22,14 +21,110 @@ resource "aws_iam_role" "ecs_instance_role" {
   assume_role_policy    = data.aws_iam_policy_document.ecs_instance_role_policy.json
 }
 
+resource "aws_iam_role_policy" "ecsInstancerolePolicy" {
+  name   = "${local.prefix}-ecs-instance-role-policy"
+  role   = aws_iam_role.ecs_instance_role.id
+  policy = var.ecsInstancerolePolicy
+}
+
+variable "ecsInstancerolePolicy" {
+  type = string
+
+  default = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ecs:CreateCluster",
+        "ecs:DeregisterContainerInstance",
+        "ecs:DiscoverPollEndpoint",
+        "ecs:Poll",
+        "ecs:RegisterContainerInstance",
+        "ecs:StartTelemetrySession",
+        "ecs:Submit*",
+        "ecr:GetAuthorizationToken",
+        "ecr:BatchCheckLayerAvailability",
+        "ecr:GetDownloadUrlForLayer",
+        "ecr:BatchGetImage",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+EOF
+}
+
 resource "aws_iam_role_policy_attachment" "ecs_agent" {
   role       = "aws_iam_role.ecs_instance_role.name"
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
 }
 
-resource "aws_iam_instance_profile" "ecs_instance_profile" {
-  name = "${local.prefix}-ecs-instance-profile"
-  role = aws_iam_role.ecs_instance_role.name
+# resource "aws_iam_instance_profile" "ecs_instance_profile" {
+#   name = "${local.prefix}-ecs-instance-profile"
+#   role = aws_iam_role.ecs_instance_role.name
+# }
+
+resource "aws_iam_role" "ecsServiceRole" {
+  name               = "${local.prefix}-ecsServiceRole"
+  assume_role_policy = var.ecsServiceRoleAssumeRolePolicy
+}
+
+resource "aws_iam_role_policy" "ecsServiceRolePolicy" {
+  name   = "${local.prefix}-ecsServiceRolePolicy"
+  role   = aws_iam_role.ecsServiceRole.id
+  policy = var.ecsServiceRolePolicy
+}
+
+resource "aws_iam_instance_profile" "ecsInstanceProfile" {
+  name = "${local.prefix}-ecsInstanceProfile"
+  role = aws_iam_role.ecsInstanceRole.name
+}
+
+variable "ecsServiceRoleAssumeRolePolicy" {
+  type = string
+
+  default = <<EOF
+{
+  "Version": "2008-10-17",
+  "Statement": [
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "ecs.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+EOF
+}
+
+variable "ecsServiceRolePolicy" {
+  default = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ec2:AuthorizeSecurityGroupIngress",
+        "ec2:Describe*",
+        "elasticloadbalancing:DeregisterInstancesFromLoadBalancer",
+        "elasticloadbalancing:DeregisterTargets",
+        "elasticloadbalancing:Describe*",
+        "elasticloadbalancing:RegisterInstancesWithLoadBalancer",
+        "elasticloadbalancing:RegisterTargets"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+EOF
 }
 
 # ----------------------------------------------------------
