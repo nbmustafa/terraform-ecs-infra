@@ -53,96 +53,18 @@ data "aws_iam_policy_document" "kms_key_policy" {
   statement {
     sid = "Allow access for Key Administrators"
     actions = [
-      "kms:Create*",
-      "kms:Describe*",
-      "kms:Enable*",
-      "kms:List*",
-      "kms:Put*",
-      "kms:Update*",
-      "kms:Revoke*",
-      "kms:Disable*",
-      "kms:Get*",
-      "kms:Delete*",
-      "kms:TagResource",
-      "kms:UntagResource",
-      "kms:ScheduleKeyDeletion",
-      "kms:CancelKeyDeletion"
-    ]
-    principals {
-      type = "AWS"
-      identifiers = [
-        aws_iam_role.ecs_instance_role.arn
-      ]
-    }
-    resources = [
-      "*"
-    ]
-  }
-  statement {
-    sid = "Autoscale to decrypt on startup"
-    actions = [
-      "kms:Encrypt",
-      "kms:ReEncrypt*",
-      "kms:DescribeKey",
-      "kms:GenerateDataKey*"
+      "kms:*",
     ]
     principals {
       type = "AWS"
       identifiers = [
         aws_iam_role.ecs_instance_role.arn,
-        "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling"
+        "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling",
       ]
     }
     resources = [
-      "*"
+      "*",
     ]
-    condition {
-      test     = "ForAnyValue:StringEquals"
-      variable = "kms:ViaService"
-      values   = ["${local.region}.amazonaws.com"]
-    }
-  }
-  statement {
-    sid = "Allow attachment of persistent resources"
-    actions = [
-      "kms:CreateGrant",
-      "kms:ListGrants",
-      "kms:RevokeGrant"
-    ]
-    principals {
-      type = "AWS"
-      identifiers = [
-        aws_iam_role.ecs_instance_role.arn,
-        "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling"
-      ]
-    }
-    resources = [
-      "*"
-    ]
-    condition {
-      test     = "Bool"
-      variable = "kms:GrantIsForAWSResource"
-      values   = ["true"]
-    }
-  }
-  statement {
-    sid    = "DenyAWSRegion"
-    effect = "Deny"
-    principals {
-      type        = "AWS"
-      identifiers = ["*"]
-    }
-    actions   = [
-      "kms:*"
-    ]
-    resources = [
-      "*"
-    ]
-    condition {
-      test     = "StringNotEquals"
-      variable = "aws:RequestedRegion"
-      values   = ["${local.region}"]
-    }
   }
 }
 
