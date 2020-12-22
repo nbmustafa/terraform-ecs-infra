@@ -16,32 +16,34 @@ data "aws_iam_policy_document" "ecs_instance_role_policy" {
       ]
     }
   }
-
-  statement {
-    sid = "Amazon EC2 Container Service for EC2 Role"
-    actions = [
-      "ecs:*",
-      "ecr:*",
-      "ec2:*",
-      "log:*",
-    ]
-    principals {
-      type = "Service"
-      identifiers = [
-        "ec2.amazonaws.com",
-        "ecs.amazonaws.com"
-      ]
-    }
-    resources = [
-      "*"
-    ]
-  }
 }
 
 resource "aws_iam_role" "ecs_instance_role" {
   name                  = "${local.prefix}-ecs-instance-role"
   force_detach_policies = true
   assume_role_policy    = data.aws_iam_policy_document.ecs_instance_role_policy.json
+}
+
+resource "aws_iam_role_policy" "test_policy" {
+  name = "test_policy"
+  role = aws_iam_role.ecs_instance_role.id
+
+  policy = <<EOF
+{
+  "Statement": [
+    {
+      "Action": [
+        "ecs:*",
+        "ecr:*",
+        "ec2:*",
+        "log:*",
+      ],
+      "Effect": "Allow",
+      "Resource": "*"
+    }
+  ]
+}
+EOF
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_role_policy_attachment" {
