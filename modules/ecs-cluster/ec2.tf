@@ -1,8 +1,6 @@
-
-data "aws_iam_policy" "ec2_container_service_policy" {
-  arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
-}
-
+# ----------------------------------------------------------
+# EC2 IAM role, policies, and Instance profile
+# ----------------------------------------------------------
 data "aws_iam_policy_document" "ecs_instance_role_policy" {
   statement {
     actions = [
@@ -24,31 +22,9 @@ resource "aws_iam_role" "ecs_instance_role" {
   assume_role_policy    = data.aws_iam_policy_document.ecs_instance_role_policy.json
 }
 
-resource "aws_iam_role_policy" "test_policy" {
-  name = "AmazonEC2ContainerServiceforEC2Role"
-  role = aws_iam_role.ecs_instance_role.id
-
-  policy = <<EOF
-{
-  "Statement": [
-    {
-      "Action": [
-        "ecs:*",
-        "ecr:*",
-        "ec2:*",
-        "log:*"
-      ],
-      "Effect": "Allow",
-      "Resource": "*"
-    }
-  ]
-}
-EOF
-}
-
-resource "aws_iam_role_policy_attachment" "ecs_role_policy_attachment" {
-  role       = aws_iam_role.ecs_instance_role.name
-  policy_arn = data.aws_iam_policy.ec2_container_service_policy.arn
+resource "aws_iam_role_policy_attachment" "ecs_agent" {
+  role       = "aws_iam_role.ecs_instance_role.name"
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
 }
 
 resource "aws_iam_instance_profile" "ecs_instance_profile" {
@@ -56,6 +32,9 @@ resource "aws_iam_instance_profile" "ecs_instance_profile" {
   role = aws_iam_role.ecs_instance_role.name
 }
 
+# ----------------------------------------------------------
+# KMS and its Policy
+# ----------------------------------------------------------
 data "aws_iam_policy_document" "kms_key_policy" {
   statement {
     sid = "Enable IAM User Permissions"
