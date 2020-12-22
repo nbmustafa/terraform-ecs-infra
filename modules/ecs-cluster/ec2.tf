@@ -50,34 +50,34 @@ data "aws_iam_policy_document" "kms_key_policy" {
       "*"
     ]
   }
-  # statement {
-  #   sid = "Allow access for Key Administrators"
-  #   actions = [
-  #     "kms:Create*",
-  #     "kms:Describe*",
-  #     "kms:Enable*",
-  #     "kms:List*",
-  #     "kms:Put*",
-  #     "kms:Update*",
-  #     "kms:Revoke*",
-  #     "kms:Disable*",
-  #     "kms:Get*",
-  #     "kms:Delete*",
-  #     "kms:TagResource",
-  #     "kms:UntagResource",
-  #     "kms:ScheduleKeyDeletion",
-  #     "kms:CancelKeyDeletion"
-  #   ]
-  #   principals {
-  #     type = "AWS"
-  #     identifiers = [
-  #       data.aws_iam_role.provisioning_instance_profile.arn
-  #     ]
-  #   }
-  #   resources = [
-  #     "*"
-  #   ]
-  # }
+  statement {
+    sid = "Allow access for Key Administrators"
+    actions = [
+      "kms:Create*",
+      "kms:Describe*",
+      "kms:Enable*",
+      "kms:List*",
+      "kms:Put*",
+      "kms:Update*",
+      "kms:Revoke*",
+      "kms:Disable*",
+      "kms:Get*",
+      "kms:Delete*",
+      "kms:TagResource",
+      "kms:UntagResource",
+      "kms:ScheduleKeyDeletion",
+      "kms:CancelKeyDeletion"
+    ]
+    principals {
+      type = "AWS"
+      identifiers = [
+        data.aws_iam_role.ecs_instance_profile.arn
+      ]
+    }
+    resources = [
+      "*"
+    ]
+  }
   statement {
     sid = "Autoscale to decrypt on startup"
     actions = [
@@ -90,7 +90,7 @@ data "aws_iam_policy_document" "kms_key_policy" {
       type = "AWS"
       identifiers = [
         aws_iam_role.ecs_instance_role.arn,
-        # data.aws_iam_role.provisioning_instance_profile.arn,
+        data.aws_iam_role.ecs_instance_profile.arn,
         "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling"
       ]
     }
