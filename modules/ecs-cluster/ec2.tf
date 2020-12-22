@@ -171,7 +171,8 @@ resource "aws_autoscaling_group" "ecs_asg" {
   instance_refresh {
     strategy = "Rolling"
     preferences {
-      min_healthy_percentage = 50
+      instance_warmup = 120 
+      min_healthy_percentage  = 50
     }
     triggers = ["tag"]
   }
@@ -182,14 +183,14 @@ resource "aws_autoscaling_group" "ecs_asg" {
     delete = "20m"
   }
 
-  # tags = merge(
-  #   {
-  #     Name      = "${local.prefix}-auto-scaling-group"
-  #     Component = "Auto-Scaling-Group"
-  #   },
-  #   local.tags
-  # )
-  tags = [local.tags]
+  tags = [merge(
+    {
+      Name      = "${local.prefix}-auto-scaling-group"
+      Component = "Auto-Scaling-Group"
+    },
+    local.tags
+  )]
+  # tags = [local.tags]
 
 }
 
