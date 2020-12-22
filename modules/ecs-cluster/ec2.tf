@@ -265,12 +265,19 @@ resource "aws_autoscaling_group" "ecs_asg" {
     triggers = ["tag"]
   }
 
-  tags       = local.asg_tags
-  depends_on = [aws_launch_template.ecs-launch-template]
+  depends_on = [aws_launch_template.ecs_launch_template]
 
   timeouts {
     delete = "20m"
   }
+
+  tags = merge(
+    {
+      Name      = "${local.prefix}-auto-scaling-group"
+      Component = "Auto-Scaling-Group"
+    },
+    local.tags
+  )
 }
 
 # ----------------------------------------------------------
