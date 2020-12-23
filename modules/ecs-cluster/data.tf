@@ -33,15 +33,23 @@ data "aws_ami" "ecs_ami" {
   }
 }
 
-data "template_file" "user-data" {
-  template = file("${path.module}/ec2/user-data.sh")
+# data "template_file" "user_data" {
+#   template = file("${path.module}/ec2/user-data.sh")
+
+#   vars = {
+#     cluster_name = aws_ecs_cluster.ecs_cluster.name
+#     proxy_host   = var.proxy_host
+#     aws_region   = data.aws_region.current.name
+#     stack_name   = "${var.service_name}-${var.app_name}-${var.environment}-ecs-asg"
+#     resource     = "ASG"
+#   }
+# }
+
+data "template_file" "user_data" {
+  template = file("${path.module}/ec2/default-user-data.sh")
 
   vars = {
-    cluster_name = aws_ecs_cluster.ecs_cluster.name
-    proxy_host   = var.proxy_host
-    aws_region   = data.aws_region.current.name
-    stack_name   = "${var.service_name}-${var.app_name}-${var.environment}-ecs-asg"
-    resource     = "ASG"
+    ecs_cluster_name = aws_ecs_cluster.ecs_cluster.name
   }
 }
 

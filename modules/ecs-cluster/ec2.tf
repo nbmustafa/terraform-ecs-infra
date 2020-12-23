@@ -214,7 +214,7 @@ resource "aws_launch_template" "ecs_launch_template" {
   }
 
   vpc_security_group_ids = [aws_security_group.ec2_sg.id]
-  user_data = base64encode(data.template_file.user-data.rendered)
+  user_data = base64encode(data.template_file.user_data.rendered)
 }
 
 # ----------------------------------------------------------

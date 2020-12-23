@@ -16,7 +16,7 @@ locals {
       asg_min_size         = "1"
       asg_power_mgt_code   = "BH" //Bussinus Hours
       certificate_arn      = ""
-      instance_type        = "t2.micro"
+      instance_type        = "t3.medium"
       record_set_name      = "cmcloudlab1817.info."
       ondemand_percentage  = "0"
       spot_price           = "0.50"
