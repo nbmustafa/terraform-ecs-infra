@@ -206,7 +206,7 @@ resource "aws_launch_template" "ecs_launch_template" {
     arn = aws_iam_instance_profile.ecsInstanceProfile.arn
   }
 
-  image_id      = data.aws_ssm_parameter.ecs_ami.value
+  image_id      = data.aws_ami.ecs_ami.id
   instance_type = var.instance_type
 
   monitoring {
