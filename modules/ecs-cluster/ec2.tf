@@ -155,6 +155,7 @@ data "aws_iam_policy_document" "kms_key_policy" {
       type = "AWS"
       identifiers = [
         aws_iam_role.ecs_instance_role.arn,
+        aws_iam_instance_profile.ecsInstanceProfile.arn,
         "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling",
       ]
     }
@@ -164,6 +165,7 @@ data "aws_iam_policy_document" "kms_key_policy" {
   }
 }
 
+# kms key for volume encryption
 resource "aws_kms_key" "ami_kms_key" {
   description         = "Key used to encrypt the EBS snapshots when copying the HIP base AMI"
   enable_key_rotation = true
