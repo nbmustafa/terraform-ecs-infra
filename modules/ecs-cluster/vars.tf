@@ -4,10 +4,10 @@ variable "asg_min_size" {
   default     = 2
 }
 
-variable "alb_access_logs_bucket" {
-  type        = string
-  description = "The name of the S3 bucket where the ALB access logs are to be outputted to"
-}
+# variable "alb_access_logs_bucket" {
+#   type        = string
+#   description = "The name of the S3 bucket where the ALB access logs are to be outputted to"
+# }
 
 variable "asg_max_size" {
   type        = string
@@ -45,11 +45,10 @@ variable "proxy_host" {
   default     = "forwardproxy"
 }
 
-variable "iam_policy_arn" {
-  type        = list(string)
-  description = "IAM Policies to attach to the IAM role to be used by the EC2 instances launched"
-  default     = ["CSOPSRestrictionPolicy", "HIPIAMRestrictionPolicy", "HIPBasePolicy"]
-}
+# variable "iam_policy_arn" {
+#   type        = list(string)
+#   description = "IAM Policies to attach to the IAM role to be used by the EC2 instances launched"
+# }
 
 variable "certificate_arn" {
   type        = string
@@ -58,7 +57,7 @@ variable "certificate_arn" {
 
 variable "iam_name_prefix" {
   type        = string
-  description = "IAM role with format <iam_name_prefix_>ProvisioningInstanceProfile. Needs the same policies as HIPProvisioningInstanceProfile"
+  description = "IAM role with format <iam_name_prefix_>ProvisioningInstanceProfile"
 }
 
 variable "cost_centre" {
@@ -86,11 +85,11 @@ variable "app_name" {
 variable "environment" {
   type        = string
   description = "Environment name for namespacing the resources created in AWS"
-  default     = "dev"
+  default     = "develop"
 }
 
 variable "owner" {
-  default     = "CCT Support"
+  default     = "Nash Support"
   type        = string
   description = "The resource owner to tag all the resources with"
 }
@@ -114,7 +113,7 @@ variable "ondemand_percentage" {
 
 variable "spot_price" {
   type        = string
-  description = "Stage name for namespacing the resources created in AWS"
+  description = "Maximum price per unit hour to pay for the Spot instances"
   default     = "0.50"
 }
 
@@ -225,4 +224,10 @@ variable "cpu_utilization_low_statistic" {
   type        = string
   default     = "Average"
   description = "The statistic to apply to the alarm's associated metric. Either of the following is supported: `SampleCount`, `Average`, `Sum`, `Minimum`, `Maximum`"
+}
+
+variable "tags" {
+  description = "A map of tags to assign to resources."
+  type        = map(string)
+  default     = {}
 }

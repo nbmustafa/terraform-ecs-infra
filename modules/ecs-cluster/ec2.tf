@@ -1,12 +1,13 @@
-data "aws_iam_role" "provisioning-instance-profile" {
-  name = "${var.iam_name_prefix}ProvisioningInstanceProfile"
+# ----------------------------------------------------------
+# locals
+# ----------------------------------------------------------
+locals {
+  autoscaling_enabled = var.enabled && var.autoscaling_policies_enabled ? true : false
 }
-
-data "aws_iam_policy" "ec2-container-service-policy" {
-  arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
-}
-
-data "aws_iam_policy_document" "ecs-instance-role-policy" {
+# ----------------------------------------------------------
+# EC2 IAM role, policies, and Instance profile
+# ----------------------------------------------------------
+data "aws_iam_policy_document" "ecs_instance_role_policy" {
   statement {
     actions = [
       "sts:AssumeRole"
@@ -15,35 +16,30 @@ data "aws_iam_policy_document" "ecs-instance-role-policy" {
       type = "Service"
       identifiers = [
         "ec2.amazonaws.com",
-        "ecs.amazonaws.com"
       ]
     }
   }
 }
 
-resource "aws_iam_role" "ecs-instance-role" {
+resource "aws_iam_role" "ecs_instance_role" {
   name                  = "${local.prefix}-ecs-instance-role"
   force_detach_policies = true
-
-  assume_role_policy = data.aws_iam_policy_document.ecs-instance-role-policy.json
+  assume_role_policy    = data.aws_iam_policy_document.ecs_instance_role_policy.json
 }
 
-resource "aws_iam_role_policy_attachment" "ecs-role-policy-attachment" {
-  role       = aws_iam_role.ecs-instance-role.name
-  policy_arn = data.aws_iam_policy.ec2-container-service-policy.arn
+resource "aws_iam_role_policy_attachment" "ecs_agent" {
+  role       = aws_iam_role.ecs_instance_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
 }
 
-resource "aws_iam_role_policy_attachment" "hip-role-policy-attachment" {
-  role       = aws_iam_role.ecs-instance-role.name
-  count      = length(var.iam_policy_arn)
-  policy_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/${var.iam_policy_arn[count.index]}"
+resource "aws_iam_instance_profile" "ecs_instance_profile" {
+  name = "${local.prefix}-ecsInstanceProfile"
+  role = aws_iam_role.ecs_instance_role.name
 }
 
-resource "aws_iam_instance_profile" "ecs-instance-profile" {
-  name = "${local.prefix}-ecs-instance-profile"
-  role = aws_iam_role.ecs-instance-role.name
-}
-
+# ----------------------------------------------------------
+# KMS and its Policy
+# ----------------------------------------------------------
 data "aws_iam_policy_document" "kms_key_policy" {
   statement {
     sid = "Enable IAM User Permissions"
@@ -63,257 +59,163 @@ data "aws_iam_policy_document" "kms_key_policy" {
   statement {
     sid = "Allow access for Key Administrators"
     actions = [
-      "kms:Create*",
-      "kms:Describe*",
-      "kms:Enable*",
-      "kms:List*",
-      "kms:Put*",
-      "kms:Update*",
-      "kms:Revoke*",
-      "kms:Disable*",
-      "kms:Get*",
-      "kms:Delete*",
-      "kms:TagResource",
-      "kms:UntagResource",
-      "kms:ScheduleKeyDeletion",
-      "kms:CancelKeyDeletion"
+      "kms:*",
     ]
     principals {
       type = "AWS"
       identifiers = [
-        data.aws_iam_role.provisioning-instance-profile.arn
+        aws_iam_role.ecs_instance_role.arn,
+        # aws_iam_instance_profile.ecsInstanceProfile.arn,
+        "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling",
       ]
     }
     resources = [
-      "*"
+      "*",
     ]
-  }
-  statement {
-    sid = "Autoscale to decrypt on startup"
-    actions = [
-      "kms:Encrypt",
-      "kms:ReEncrypt*",
-      "kms:DescribeKey",
-      "kms:GenerateDataKey*"
-    ]
-    principals {
-      type = "AWS"
-      identifiers = [
-        aws_iam_role.ecs-instance-role.arn,
-        data.aws_iam_role.provisioning-instance-profile.arn,
-        "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling"
-      ]
-    }
-    resources = [
-      "*"
-    ]
-    condition {
-      test     = "ForAnyValue:StringEquals"
-      variable = "kms:ViaService"
-      values   = ["ec2.ap-southeast-2.amazonaws.com"]
-    }
-  }
-  statement {
-    sid = "Allow attachment of persistent resources"
-    actions = [
-      "kms:CreateGrant",
-      "kms:ListGrants",
-      "kms:RevokeGrant"
-    ]
-    principals {
-      type = "AWS"
-      identifiers = [
-        aws_iam_role.ecs-instance-role.arn,
-        "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling"
-      ]
-    }
-    resources = [
-      "*"
-    ]
-    condition {
-      test     = "Bool"
-      variable = "kms:GrantIsForAWSResource"
-      values   = ["true"]
-    }
-  }
-  statement {
-    sid    = "DenyAWSRegion"
-    effect = "Deny"
-    principals {
-      type        = "AWS"
-      identifiers = ["*"]
-    }
-    actions   = [
-      "kms:*"
-    ]
-    resources = [
-      "*"
-    ]
-    condition {
-      test     = "StringNotEquals"
-      variable = "aws:RequestedRegion"
-      values   = ["ap-southeast-2"]
-    }
   }
 }
 
-resource "aws_kms_key" "axt-base-ami-kms-key" {
+# kms key for volume encryption
+resource "aws_kms_key" "ami_kms_key" {
   description         = "Key used to encrypt the EBS snapshots when copying the HIP base AMI"
   enable_key_rotation = true
 
   policy = data.aws_iam_policy_document.kms_key_policy.json
 
-  tags = {
-    "ApplicationID" = var.application_id
-    "CostCentre"    = var.cost_centre
-  }
+  tags = merge(
+    {
+      Name      = "${local.prefix}-kms-ke-for-ami"
+      Component = "kms key"
+    },
+    var.tags
+  )
 }
 
-resource "aws_launch_template" "ecs-launch-template" {
+# ----------------------------------------------------------
+# Launch_template
+# ----------------------------------------------------------
+resource "aws_launch_template" "ecs_launch_template" {
   name = "${local.prefix}-ecs-launch-template"
 
   block_device_mappings {
     device_name = "/dev/xvda"
     ebs {
-      volume_size = 20
+      volume_size = 30
       encrypted   = true
-      kms_key_id  = aws_kms_key.axt-base-ami-kms-key.arn
+      kms_key_id  = aws_kms_key.ami_kms_key.arn
     }
   }
 
   block_device_mappings {
     device_name = "/dev/xvdcz"
     ebs {
-      volume_size = 22
+      volume_size = 30
       encrypted   = true
-      kms_key_id  = aws_kms_key.axt-base-ami-kms-key.arn
+      kms_key_id  = aws_kms_key.ami_kms_key.arn
     }
   }
 
   disable_api_termination = var.disable_api_termination
 
   iam_instance_profile {
-    arn = aws_iam_instance_profile.ecs-instance-profile.arn
+    arn = aws_iam_instance_profile.ecs_instance_profile.arn
   }
 
-  image_id = data.aws_ami.hip-ami.id
+  image_id      = data.aws_ami.ecs_ami.id
   instance_type = var.instance_type
 
   monitoring {
     enabled = true
   }
 
-  vpc_security_group_ids = [aws_security_group.ec2-sg.id]
-  user_data = base64encode(data.template_file.user-data.rendered)
+  vpc_security_group_ids = [aws_security_group.ec2_sg.id]
+  user_data = base64encode(data.template_file.user_data.rendered)
+
+  tags = merge(
+    {
+      Name      = "${local.prefix}-launch-template"
+      Component = "Launch Template"
+    },
+    var.tags
+  )
 }
 
-resource "aws_cloudformation_stack" "ecs-autoscaling-group" {
-  name = "${local.prefix}-ecs-asg"
+# ----------------------------------------------------------
+# Auto-Scaling Group
+# ----------------------------------------------------------
+resource "aws_autoscaling_group" "ecs_asg" {
+  name                      = "${local.prefix}-ecs-asg"
+  min_size                  = var.asg_min_size
+  desired_capacity          = var.asg_desired_capacity
+  max_size                  = var.asg_max_size
+  default_cooldown          = 300
+  health_check_grace_period = 300
+  health_check_type         = "EC2"
+  protect_from_scale_in     = "false"
+  termination_policies      = ["OldestInstance", "Default"]
+  vpc_zone_identifier       = data.aws_subnet_ids.subnet_ids.ids
 
-  parameters = {
-    VPCZoneIdentifier = join(",", data.aws_subnet_ids.subnet-ids.ids)
+  mixed_instances_policy {
+    launch_template {
+      launch_template_specification {
+        launch_template_id = aws_launch_template.ecs_launch_template.id
+        version            = aws_launch_template.ecs_launch_template.latest_version
+      }
+
+      # override {
+      #   instance_type = "t3a.large"
+      #   # weighted_capacity = "2"
+      # }
+      # override {
+      #   instance_type     = "c3.large"
+      #   # weighted_capacity = "2"
+      # }
+
+    }
+    instances_distribution {
+      on_demand_allocation_strategy            = "prioritized"
+      on_demand_base_capacity                  = "1"
+      on_demand_percentage_above_base_capacity = "50"
+      spot_allocation_strategy                 = "lowest-price"
+      spot_instance_pools                      = "2"
+      spot_max_price                           = var.spot_price
+    }
   }
 
-  template_body = <<EOF
-{
-  "Parameters" : {
-    "VPCZoneIdentifier" : {
-      "Type": "List<AWS::EC2::Subnet::Id>"
-    }
-  },
-  "Resources": {
-    "ASG": {
-      "Type": "AWS::AutoScaling::AutoScalingGroup",
-      "Properties": {
-        "AutoScalingGroupName": "${var.service_name}-${var.app_name}-${var.environment}-ecs-asg",
-        "VPCZoneIdentifier": {
-          "Ref" : "VPCZoneIdentifier"
-        },
-        "MaxSize": ${var.asg_max_size},
-        "MinSize": ${var.asg_min_size},
-        "HealthCheckType": "EC2",
-        "HealthCheckGracePeriod": 300,
-        "MixedInstancesPolicy" : {
-          "InstancesDistribution": {
-            "OnDemandAllocationStrategy": "prioritized",
-            "OnDemandBaseCapacity": 0,
-            "OnDemandPercentageAboveBaseCapacity": ${var.ondemand_percentage},
-            "SpotAllocationStrategy": "lowest-price",
-            "SpotInstancePools": 2,
-            "SpotMaxPrice": "${var.spot_price}"
-          },
-          "LaunchTemplate": {
-            "LaunchTemplateSpecification": {
-              "LaunchTemplateId": "${aws_launch_template.ecs-launch-template.id}",
-              "Version": "${aws_launch_template.ecs-launch-template.latest_version}"
-            }
-          }
-        },
-        "Tags": [
-        {
-          "Key": "Name",
-          "Value": "${var.service_name}-${var.app_name}-${var.environment}-instance",
-          "PropagateAtLaunch": true
-        },
-        {
-          "Key": "ApplicationID",
-          "Value": "${var.application_id}",
-          "PropagateAtLaunch": true
-        },
-        {
-          "Key": "CostCentre",
-          "Value": "${var.cost_centre}",
-          "PropagateAtLaunch": true
-        },
-        {
-          "Key": "PowerMgt",
-          "Value": "${var.asg_power_mgt_code}",
-          "PropagateAtLaunch": true
-        }
-        ]
-      },
-      "CreationPolicy": {
-        "AutoScalingCreationPolicy": {
-          "MinSuccessfulInstancesPercent": 100
-        },
-        "ResourceSignal": {
-          "Count": ${var.asg_desired_capacity},
-          "Timeout": "PT20M"
-        }
-      },
-      "UpdatePolicy": {
-        "AutoScalingRollingUpdate": {
-          "MinInstancesInService": ${var.asg_min_size},
-          "MaxBatchSize": 2,
-          "MinSuccessfulInstancesPercent": 80,
-          "PauseTime": "PT10M",
-          "WaitOnResourceSignals": true,
-          "SuspendProcesses": ["AlarmNotification", "ScheduledActions", "HealthCheck", "ReplaceUnhealthy", "AZRebalance"]
-        }
-      }
-    }
-  },
-  "Outputs": {
-    "AsgName": {
-      "Description": "The name of the auto scaling group",
-       "Value": {
-          "Ref": "ASG"
-      }
-    }
-  }
-}
-EOF
-
-  # create a new one before destroy old one when a resource must be re-created upon a requested change
   lifecycle {
+    ignore_changes        = [desired_capacity]
     create_before_destroy = true
   }
+
+  instance_refresh {
+    strategy = "Rolling"
+    preferences {
+      # instance_warmup = 120 
+      min_healthy_percentage  = 50
+    }
+    # triggers = ["tag"]
+  }
+
+  depends_on = [aws_launch_template.ecs_launch_template]
+
+  timeouts {
+    delete = "20m"
+  }
+
+  # dynamic "tag" {
+  #   for_each = var.tags
+  #   content {
+  #     key                 = tag.value["key"]
+  #     value               = tag.value["value"]
+  #     propagate_at_launch = true
+  #   }
+  # }
+
 }
 
-locals {
-  autoscaling_enabled = var.enabled && var.autoscaling_policies_enabled ? true : false
-}
-
+# ----------------------------------------------------------
+# Auto-scaling group Policies
+# ----------------------------------------------------------
 resource "aws_autoscaling_policy" "scale_up" {
   count                  = local.autoscaling_enabled ? 1 : 0
   name                   = "${local.prefix}-ecs-cluster-scale-up"
@@ -321,7 +223,7 @@ resource "aws_autoscaling_policy" "scale_up" {
   adjustment_type        = var.scale_up_adjustment_type
   policy_type            = var.scale_up_policy_type
   cooldown               = var.scale_up_cooldown_seconds
-  autoscaling_group_name = aws_cloudformation_stack.ecs-autoscaling-group.outputs["AsgName"]
+  autoscaling_group_name = aws_autoscaling_group.ecs_asg.name
 }
 
 resource "aws_autoscaling_policy" "scale_down" {
@@ -331,7 +233,7 @@ resource "aws_autoscaling_policy" "scale_down" {
   adjustment_type        = var.scale_down_adjustment_type
   policy_type            = var.scale_down_policy_type
   cooldown               = var.scale_down_cooldown_seconds
-  autoscaling_group_name = aws_cloudformation_stack.ecs-autoscaling-group.outputs["AsgName"]
+  autoscaling_group_name = aws_autoscaling_group.ecs_asg.name
 }
 
 resource "aws_cloudwatch_metric_alarm" "cpu_high" {
@@ -348,7 +250,7 @@ resource "aws_cloudwatch_metric_alarm" "cpu_high" {
   alarm_actions       = ["${aws_autoscaling_policy.scale_up.0.arn}"]
 
   dimensions = {
-    AutoScalingGroupName = aws_cloudformation_stack.ecs-autoscaling-group.outputs["AsgName"]
+    AutoScalingGroupName = aws_autoscaling_group.ecs_asg.name
   }
 }
 
@@ -366,6 +268,6 @@ resource "aws_cloudwatch_metric_alarm" "cpu_low" {
   alarm_actions       = ["${aws_autoscaling_policy.scale_down.0.arn}"]
 
   dimensions = {
-    AutoScalingGroupName = aws_cloudformation_stack.ecs-autoscaling-group.outputs["AsgName"]
+    AutoScalingGroupName = aws_autoscaling_group.ecs_asg.name
   }
 }
