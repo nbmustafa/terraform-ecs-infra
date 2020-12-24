@@ -196,13 +196,13 @@ resource "aws_autoscaling_group" "ecs_asg" {
     delete = "20m"
   }
 
-  tags = [merge(
+  tags = merge(
     {
       Name      = "${local.prefix}-auto-scaling-group"
       Component = "Auto-Scaling-Group"
     },
     var.tags
-  )]
+  )
 
 }
 
