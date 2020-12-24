@@ -1,4 +1,10 @@
 # ----------------------------------------------------------
+# locals
+# ----------------------------------------------------------
+locals {
+  autoscaling_enabled = var.enabled && var.autoscaling_policies_enabled ? true : false
+
+# ----------------------------------------------------------
 # EC2 IAM role, policies, and Instance profile
 # ----------------------------------------------------------
 data "aws_iam_policy_document" "ecs_instance_role_policy" {
@@ -196,21 +202,15 @@ resource "aws_autoscaling_group" "ecs_asg" {
     delete = "20m"
   }
 
-  tags = merge(
-    {
-      Name      = "${local.prefix}-auto-scaling-group"
-      Component = "Auto-Scaling-Group"
-    },
-    var.tags
-  )
+  # dynamic "tag" {
+  #   for_each = var.tags
+  #   content {
+  #     key                 = tag.value["key"]
+  #     value               = tag.value["value"]
+  #     propagate_at_launch = true
+  #   }
+  # }
 
-}
-
-# ----------------------------------------------------------
-# locals
-# ----------------------------------------------------------
-locals {
-  autoscaling_enabled = var.enabled && var.autoscaling_policies_enabled ? true : false
 }
 
 # ----------------------------------------------------------
