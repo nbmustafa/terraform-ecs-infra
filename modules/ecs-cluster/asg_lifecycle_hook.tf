@@ -79,14 +79,6 @@ resource "aws_lambda_function" "container_draining_lambda" {
 
   timeout = "300"
 
-  tags = merge(
-    {
-      Name      = "${local.prefix}-container-draining-lambda"
-      Component = "Lambda"
-    },
-    var.tags
-  )
-
   vpc_config {
     security_group_ids = [data.aws_security_group.vpc_default_sg.id]
     subnet_ids         = data.aws_subnet_ids.subnet_ids.ids
@@ -97,6 +89,14 @@ resource "aws_lambda_function" "container_draining_lambda" {
       FORWARD_PROXY = "http://forwardproxy:3128"
     }
   }
+
+  tags = merge(
+    {
+      Name      = "${local.prefix}-container-draining-lambda"
+      Component = "Lambda Function"
+    },
+    var.tags
+  )
 }
 
 resource "aws_lambda_alias" "container_draining_lambda_alias" {
