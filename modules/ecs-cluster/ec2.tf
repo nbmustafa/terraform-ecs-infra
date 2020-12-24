@@ -192,7 +192,6 @@ resource "aws_autoscaling_group" "ecs_asg" {
     },
     local.tags
   )]
-  # tags = [local.tags]
 
 }
 
