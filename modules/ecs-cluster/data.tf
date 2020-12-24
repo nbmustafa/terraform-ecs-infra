@@ -18,13 +18,6 @@ data aws_subnet_ids subnet_ids {
 data aws_security_group vpc_default_sg {
   vpc_id = data.aws_vpc.vpc.id
   name   = "default"
-}
-
-# data "aws_ssm_parameter" "ecs_ami" {
-#   name = "/aws/service/ecs/optimized-ami/amazon-linux-2/recommended/image_id"
-# }
-# image_id      = data.aws_ssm_parameter.ecs_ami.value
-
 
 data "aws_ami" "ecs_ami" {
   most_recent = true
@@ -35,6 +28,12 @@ data "aws_ami" "ecs_ami" {
     values = ["amzn-ami-*-amazon-ecs-optimized"]
   }
 }
+
+# data "aws_ssm_parameter" "ecs_ami" {
+#   name = "/aws/service/ecs/optimized-ami/amazon-linux-2/recommended/image_id"
+# }
+# image_id      = data.aws_ssm_parameter.ecs_ami.value
+
 
 # data "template_file" "user_data" {
 #   template = file("${path.module}/ec2/user-data.sh")
