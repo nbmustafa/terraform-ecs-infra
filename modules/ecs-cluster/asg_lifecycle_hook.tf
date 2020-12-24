@@ -28,7 +28,7 @@ resource "aws_iam_role" "container_draining_asg_lifecycle_hook" {
 }
 
 resource "aws_iam_role_policy_attachment" "container_draining_asg_lifecycle_hook_asn_access" {
-  role       = aws_iam_role.container-draining_asg_lifecycle_hook.name
+  role       = aws_iam_role.container_draining_asg_lifecycle_hook.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AutoScalingNotificationAccessRole"
 }
 
@@ -81,9 +81,9 @@ resource "aws_lambda_function" "container_draining_lambda" {
 }
 
 resource "aws_lambda_alias" "container_draining_lambda" {
-  name             = aws_lambda_function.container-draining_lambda.function_name
-  description      = aws_lambda_function.container-draining_lambda.function_name
-  function_name    = aws_lambda_function.container-draining_lambda.arn
+  name             = aws_lambda_function.container_draining_lambda.function_name
+  description      = aws_lambda_function.container_draining_lambda.function_name
+  function_name    = aws_lambda_function.container_draining_lambda.arn
   function_version = "$LATEST"
 }
 
