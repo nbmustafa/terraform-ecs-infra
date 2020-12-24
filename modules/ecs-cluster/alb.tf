@@ -7,17 +7,19 @@ resource "aws_security_group" "alb_sg" {
   description = "Allow inbound traffic to alb"
   vpc_id      = data.aws_vpc.vpc.id
 
+ lifecycle {
+    create_before_destroy = true
+  }
+
+  revoke_rules_on_delete = true
+
   tags = merge(
     {
       Name      = "${local.prefix}-alb-sg"
       Component = "Security Group"
     },
-    local.tags
+    var.tags
   )
-
-  lifecycle {
-    create_before_destroy = true
-  }
 }
 
 resource "aws_security_group_rule" "alb_ingress" {
@@ -60,7 +62,7 @@ resource "aws_lb" "alb" {
       Name      = "${local.prefix}-alb"
       Component = "ALB"
     },
-    local.tags
+    var.tags
   )
 }
 

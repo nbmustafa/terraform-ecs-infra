@@ -47,13 +47,6 @@ locals {
       asg_desired_capacity = "2"
     }
   }
-
-  tags = {
-    ApplicationID = local.application_id
-    CostCentre    = local.cost_centre
-    ServiceName   = local.service_name
-    Environment   = var.environment
-  }
-
+  
   account_config = local.account_configs[var.environment]
 }

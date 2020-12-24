@@ -1,4 +1,10 @@
 # ----------------------------------------------------------
+# locals
+# ----------------------------------------------------------
+locals {
+  autoscaling_enabled = var.enabled && var.autoscaling_policies_enabled ? true : false
+}
+# ----------------------------------------------------------
 # EC2 IAM role, policies, and Instance profile
 # ----------------------------------------------------------
 data "aws_iam_policy_document" "ecs_instance_role_policy" {
@@ -76,10 +82,13 @@ resource "aws_kms_key" "ami_kms_key" {
 
   policy = data.aws_iam_policy_document.kms_key_policy.json
 
-  tags = {
-    "ApplicationID" = var.application_id
-    "CostCentre"    = var.cost_centre
-  }
+  tags = merge(
+    {
+      Name      = "${local.prefix}-kms-ke-for-ami"
+      Component = "kms key"
+    },
+    var.tags
+  )
 }
 
 # ----------------------------------------------------------
@@ -121,6 +130,14 @@ resource "aws_launch_template" "ecs_launch_template" {
 
   vpc_security_group_ids = [aws_security_group.ec2_sg.id]
   user_data = base64encode(data.template_file.user_data.rendered)
+
+  tags = merge(
+    {
+      Name      = "${local.prefix}-launch-template"
+      Component = "Launch Template"
+    },
+    var.tags
+  )
 }
 
 # ----------------------------------------------------------
@@ -185,21 +202,15 @@ resource "aws_autoscaling_group" "ecs_asg" {
     delete = "20m"
   }
 
-  tags = [merge(
-    {
-      Name      = "${local.prefix}-auto-scaling-group"
-      Component = "Auto-Scaling-Group"
-    },
-    local.tags
-  )]
+  # dynamic "tag" {
+  #   for_each = var.tags
+  #   content {
+  #     key                 = tag.value["key"]
+  #     value               = tag.value["value"]
+  #     propagate_at_launch = true
+  #   }
+  # }
 
-}
-
-# ----------------------------------------------------------
-# locals
-# ----------------------------------------------------------
-locals {
-  autoscaling_enabled = var.enabled && var.autoscaling_policies_enabled ? true : false
 }
 
 # ----------------------------------------------------------
