@@ -11,10 +11,14 @@ data "aws_vpc" "vpc" {
   }
 }
 
-data "aws_ami" "hip-ami" {
+data "aws_ami" "ecs_ami" {
   most_recent = true
-  name_regex  = "^hip-hui-amznecs.*"
-  owners      = ["522412867873"]
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["amzn-ami-*-amazon-ecs-optimized"]
+  }
 }
 
 data "template_file" "user-data" {
