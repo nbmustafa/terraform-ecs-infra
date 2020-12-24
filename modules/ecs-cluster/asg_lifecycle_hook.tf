@@ -10,8 +10,6 @@ resource "aws_autoscaling_lifecycle_hook" "container_draining" {
   notification_target_arn = aws_sns_topic.container_draining_sns_topic.arn
   role_arn                = aws_iam_role.lifecycle_hook_iam_role.arn
 
-  # depends_on = [ aws_iam_role_policy_attachment.lifecycle_hook_asn_access_policy ]
-
   notification_metadata = <<EOF
   {
     "CLUSTER_NAME": "${aws_ecs_cluster.ecs_cluster.name}"
@@ -27,7 +25,7 @@ resource "aws_iam_role" "lifecycle_hook_iam_role" {
     create_before_destroy = true
   }
 
-  assume_role_policy    = <<-EOF
+  assume_role_policy = <<-EOF
   {
     "Version": "2012-10-17",
     "Statement": [
@@ -124,7 +122,7 @@ resource "aws_iam_role" "container_draining_lambda_role" {
     create_before_destroy = true
   }
 
-  assume_role_policy    = <<-EOF
+  assume_role_policy = <<-EOF
   {
     "Version": "2012-10-17",
     "Statement": [
