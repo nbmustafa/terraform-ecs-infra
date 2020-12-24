@@ -156,38 +156,38 @@ resource "aws_iam_role_policy" "container_draining_lambda_policy" {
   role = aws_iam_role.container_draining_lambda_role.name
 
   policy = <<EOF
-  {
-    "Version": "2012-10-17",
-    "Statement": [
-      {
-        "Action": [
-          "autoscaling:CompleteLifecycleAction",
-          "logs:CreateLogGroup",
-          "logs:CreateLogStream",
-          "logs:PutLogEvents",
-          "ec2:DescribeInstances",
-          "ec2:DescribeInstanceAttribute",
-          "ec2:DescribeInstanceStatus",
-          "ec2:DescribeHosts",
-          "ec2:DescribeNetworkInterfaces",
-          "ec2:CreateNetworkInterface",
-          "ec2:DeleteNetworkInterface",
-          "ec2:DescribeInstances",
-          "ec2:AttachNetworkInterface",
-          "ecs:ListContainerInstances",
-          "ecs:SubmitContainerStateChange",
-          "ecs:SubmitTaskStateChange",
-          "ecs:DescribeContainerInstances",
-          "ecs:UpdateContainerInstancesState",
-          "ecs:ListTasks",
-          "ecs:DescribeTasks",
-          "sns:Publish",
-          "sns:ListSubscriptions"
-        ],
-        "Effect": "Allow",
-        "Resource": "*"
-      }
-    ]
-  }
-  EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "autoscaling:CompleteLifecycleAction",
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents",
+        "ec2:DescribeInstances",
+        "ec2:DescribeInstanceAttribute",
+        "ec2:DescribeInstanceStatus",
+        "ec2:DescribeHosts",
+        "ec2:DescribeNetworkInterfaces",
+        "ec2:CreateNetworkInterface",
+        "ec2:DeleteNetworkInterface",
+        "ec2:DescribeInstances",
+        "ec2:AttachNetworkInterface",
+        "ecs:ListContainerInstances",
+        "ecs:SubmitContainerStateChange",
+        "ecs:SubmitTaskStateChange",
+        "ecs:DescribeContainerInstances",
+        "ecs:UpdateContainerInstancesState",
+        "ecs:ListTasks",
+        "ecs:DescribeTasks",
+        "sns:Publish",
+        "sns:ListSubscriptions"
+      ],
+      "Effect": "Allow",
+      "Resource": "*"
+    }
+  ]
+}
+EOF
 }
