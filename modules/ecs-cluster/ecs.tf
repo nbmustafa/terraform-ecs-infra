@@ -6,6 +6,6 @@ resource "aws_ecs_cluster" "ecs_cluster" {
       Name      = "${local.prefix}-ecs-cluster"
       Component = "ECS Cluster"
     },
-    local.tags
+    var.tags
   )
 }

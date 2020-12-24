@@ -11,7 +11,7 @@ resource "aws_security_group" "ec2_sg" {
       Name      = "${local.prefix}-ec2-sg"
       Component = "Security Group"
     },
-    local.tags
+    var.tags
   )
 
   lifecycle {

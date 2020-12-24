@@ -84,7 +84,7 @@ resource "aws_lambda_function" "container_draining_lambda" {
       Name      = "${local.prefix}-container-draining-lambda"
       Component = "Lambda"
     },
-    local.tags
+    var.tags
   )
 
   vpc_config {

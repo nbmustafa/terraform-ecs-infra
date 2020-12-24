@@ -12,7 +12,7 @@ resource "aws_security_group" "alb_sg" {
       Name      = "${local.prefix}-alb-sg"
       Component = "Security Group"
     },
-    local.tags
+    var.tags
   )
 
   lifecycle {
@@ -60,7 +60,7 @@ resource "aws_lb" "alb" {
       Name      = "${local.prefix}-alb"
       Component = "ALB"
     },
-    local.tags
+    var.tags
   )
 }
 

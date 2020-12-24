@@ -76,10 +76,13 @@ resource "aws_kms_key" "ami_kms_key" {
 
   policy = data.aws_iam_policy_document.kms_key_policy.json
 
-  tags = {
-    "ApplicationID" = var.application_id
-    "CostCentre"    = var.cost_centre
-  }
+  tags = merge(
+    {
+      Name      = "${local.prefix}-kms-ke-for-ami"
+      Component = "kms key"
+    },
+    var.tags
+  )
 }
 
 # ----------------------------------------------------------
@@ -121,6 +124,14 @@ resource "aws_launch_template" "ecs_launch_template" {
 
   vpc_security_group_ids = [aws_security_group.ec2_sg.id]
   user_data = base64encode(data.template_file.user_data.rendered)
+
+  tags = merge(
+    {
+      Name      = "${local.prefix}-launch-template"
+      Component = "Launch Template"
+    },
+    var.tags
+  )
 }
 
 # ----------------------------------------------------------
@@ -190,7 +201,7 @@ resource "aws_autoscaling_group" "ecs_asg" {
       Name      = "${local.prefix}-auto-scaling-group"
       Component = "Auto-Scaling-Group"
     },
-    local.tags
+    var.tags
   )]
 
 }
