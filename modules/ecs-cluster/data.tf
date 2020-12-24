@@ -58,7 +58,7 @@ data "aws_subnet_ids" "subnet_ids" {
   vpc_id = data.aws_vpc.vpc.id
 }
 
-data "aws_security_group" "vpc-default-sg" {
+data "aws_security_group" "vpc_default_sg" {
   vpc_id = data.aws_vpc.vpc.id
   name   = "default"
 }
