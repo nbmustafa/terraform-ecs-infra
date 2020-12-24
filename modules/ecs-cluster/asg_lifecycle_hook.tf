@@ -106,7 +106,7 @@ resource "aws_iam_role_policy_attachment" "container_draining_lambda_basic_exec"
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
-resource "aws_iam_role_policy_attachment" "container_draining_lambda-autoscaling_notification" {
+resource "aws_iam_role_policy_attachment" "container_draining_lambda_autoscaling_notification" {
   role       = aws_iam_role.container_draining_lambda_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AutoScalingNotificationAccessRole"
 }
