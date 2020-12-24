@@ -3,7 +3,7 @@
 # ----------------------------------------------------------
 locals {
   autoscaling_enabled = var.enabled && var.autoscaling_policies_enabled ? true : false
-
+}
 # ----------------------------------------------------------
 # EC2 IAM role, policies, and Instance profile
 # ----------------------------------------------------------
