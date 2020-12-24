@@ -101,14 +101,14 @@ resource "aws_lambda_function" "container_draining_lambda" {
   }
 }
 
-resource "aws_lambda_alias" "container_draining_lambda" {
+resource "aws_lambda_alias" "container_draining_lambda_alias" {
   name             = aws_lambda_function.container_draining_lambda.function_name
   description      = aws_lambda_function.container_draining_lambda.function_name
   function_name    = aws_lambda_function.container_draining_lambda.arn
   function_version = "$LATEST"
 }
 
-resource "aws_lambda_permission" "container_draining_lambda" {
+resource "aws_lambda_permission" "container_draining_lambda_permission" {
   function_name = aws_lambda_function.container_draining_lambda.arn
   statement_id  = "AllowExecutionFromSNS"
   action        = "lambda:InvokeFunction"
@@ -151,43 +151,43 @@ resource "aws_iam_role_policy_attachment" "container_draining_lambda_autoscaling
   policy_arn = "arn:aws:iam::aws:policy/service-role/AutoScalingNotificationAccessRole"
 }
 
-resource "aws_iam_role_policy" "container_draining_lambda" {
+resource "aws_iam_role_policy" "container_draining_lambda_policy" {
   name = "${local.prefix}-container-draining-lambda-role-policy"
   role = aws_iam_role.container_draining_lambda_role.name
 
   policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Action": [
-        "autoscaling:CompleteLifecycleAction",
-        "logs:CreateLogGroup",
-        "logs:CreateLogStream",
-        "logs:PutLogEvents",
-        "ec2:DescribeInstances",
-        "ec2:DescribeInstanceAttribute",
-        "ec2:DescribeInstanceStatus",
-        "ec2:DescribeHosts",
-        "ec2:DescribeNetworkInterfaces",
-        "ec2:CreateNetworkInterface",
-        "ec2:DeleteNetworkInterface",
-        "ec2:DescribeInstances",
-        "ec2:AttachNetworkInterface",
-        "ecs:ListContainerInstances",
-        "ecs:SubmitContainerStateChange",
-        "ecs:SubmitTaskStateChange",
-        "ecs:DescribeContainerInstances",
-        "ecs:UpdateContainerInstancesState",
-        "ecs:ListTasks",
-        "ecs:DescribeTasks",
-        "sns:Publish",
-        "sns:ListSubscriptions"
-      ],
-      "Effect": "Allow",
-      "Resource": "*"
-    }
-  ]
-}
-EOF
+  {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Action": [
+          "autoscaling:CompleteLifecycleAction",
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents",
+          "ec2:DescribeInstances",
+          "ec2:DescribeInstanceAttribute",
+          "ec2:DescribeInstanceStatus",
+          "ec2:DescribeHosts",
+          "ec2:DescribeNetworkInterfaces",
+          "ec2:CreateNetworkInterface",
+          "ec2:DeleteNetworkInterface",
+          "ec2:DescribeInstances",
+          "ec2:AttachNetworkInterface",
+          "ecs:ListContainerInstances",
+          "ecs:SubmitContainerStateChange",
+          "ecs:SubmitTaskStateChange",
+          "ecs:DescribeContainerInstances",
+          "ecs:UpdateContainerInstancesState",
+          "ecs:ListTasks",
+          "ecs:DescribeTasks",
+          "sns:Publish",
+          "sns:ListSubscriptions"
+        ],
+        "Effect": "Allow",
+        "Resource": "*"
+      }
+    ]
+  }
+  EOF
 }
