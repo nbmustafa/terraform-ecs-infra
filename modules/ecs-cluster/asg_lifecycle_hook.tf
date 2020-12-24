@@ -1,8 +1,6 @@
-locals {
-  ecs_cluster_name       = aws_ecs_cluster.ecs_cluster.name
-}
-
-# asg lifecycle hooks
+# ----------------------------------------------------------
+# asg lifecycle hooks and its iam role
+# ----------------------------------------------------------
 resource "aws_autoscaling_lifecycle_hook" "container_draining" {
   name                    = "container-draining-lifecycle-hook"
   autoscaling_group_name  = aws_autoscaling_group.ecs_asg.name
@@ -10,29 +8,50 @@ resource "aws_autoscaling_lifecycle_hook" "container_draining" {
   heartbeat_timeout       = 900
   lifecycle_transition    = "autoscaling:EC2_INSTANCE_TERMINATING"
   notification_target_arn = aws_sns_topic.container_draining_sns_topic.arn
-  role_arn                = aws_iam_role.container_draining_asg_lifecycle_hook.arn
+  role_arn                = aws_iam_role.lifecycle_hook_iam_role.arn
 
-  depends_on = [ aws_iam_role_policy_attachment.container_draining_asg_lifecycle_hook_asn_access ]
+  depends_on = [ aws_iam_role_policy_attachment.lifecycle_hook_asn_access ]
 
   notification_metadata = <<EOF
-{
-  "CLUSTER_NAME": "${aws_ecs_cluster.ecs_cluster.name}"
-}
-EOF
+  {
+    "CLUSTER_NAME": "${aws_ecs_cluster.ecs_cluster.name}"
+  }
+  EOF
 }
 
-resource "aws_iam_role" "container_draining_asg_lifecycle_hook" {
+resource "aws_iam_role" "lifecycle_hook_iam_role" {
   name                  = "${local.prefix}-asg-hooks-container-draining-role"
-  assume_role_policy    = file("${path.module}/policies/autoscaling_assume_role.json")
   force_detach_policies = true
+  
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  assume_role_policy    = <<-EOF
+  {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Action": "sts:AssumeRole",
+        "Principal": {
+          "Service": "autoscaling.amazonaws.com"
+        },
+        "Effect": "Allow",
+        "Sid": ""
+      }
+    ]
+  }
+  EOF 
 }
 
-resource "aws_iam_role_policy_attachment" "container_draining_asg_lifecycle_hook_asn_access" {
-  role       = aws_iam_role.container_draining_asg_lifecycle_hook.name
+resource "aws_iam_role_policy_attachment" "lifecycle_hook_asn_access" {
+  role       = aws_iam_role.lifecycle_hook_iam_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AutoScalingNotificationAccessRole"
 }
 
-# sns
+# ----------------------------------------------------------
+# sns topic 
+# ----------------------------------------------------------
 resource "aws_sns_topic" "container_draining_sns_topic" {
   name = "${local.prefix}-container-draining-topic"
 }
@@ -43,7 +62,9 @@ resource "aws_sns_topic_subscription" "container_draining_sns_subscription" {
   endpoint  = aws_lambda_function.container_draining_lambda.arn
 }
 
-# lambda
+# ----------------------------------------------------------
+# Lambda Function
+# ----------------------------------------------------------
 data "archive_file" "container_draining_zip" {
   type        = "zip"
   output_path = "${path.module}/tmp/lambdas/container_draining-${sha256(file("${path.module}/lambdas/container_draining.py"))}.zip"
@@ -97,8 +118,27 @@ resource "aws_lambda_permission" "container_draining_lambda" {
 
 resource "aws_iam_role" "container_draining_lambda_role" {
   name                  = "${local.prefix}-container-draining-lambda-assume-role"
-  assume_role_policy    = file("${path.module}/policies/lambda_assume_role.json")
   force_detach_policies = true
+  
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  assume_role_policy    = <<-EOF
+  {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Action": "sts:AssumeRole",
+        "Principal": {
+          "Service": "lambda.amazonaws.com"
+        },
+        "Effect": "Allow",
+        "Sid": ""
+      }
+    ]
+  }
+  EOF 
 }
 
 resource "aws_iam_role_policy_attachment" "container_draining_lambda_basic_exec" {
