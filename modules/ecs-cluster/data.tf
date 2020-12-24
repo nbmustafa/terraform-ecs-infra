@@ -18,6 +18,7 @@ data aws_subnet_ids subnet_ids {
 data aws_security_group vpc_default_sg {
   vpc_id = data.aws_vpc.vpc.id
   name   = "default"
+}
 
 data "aws_ami" "ecs_ami" {
   most_recent = true
