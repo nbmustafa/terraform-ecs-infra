@@ -19,5 +19,11 @@ module "ecs-cluster" {
   ondemand_percentage     = local.account_config["ondemand_percentage"]
   record_set_name         = local.account_config["record_set_name"]
   spot_price              = local.account_config["spot_price"]
-  tags                    = local.tags
+  
+  tags = {
+    ApplicationID = local.application_id
+    CostCentre    = local.cost_centre
+    ServiceName   = local.service_name
+    Environment   = var.environment
+  }
 }
