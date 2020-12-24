@@ -6,6 +6,12 @@ resource "aws_security_group" "ec2_sg" {
   description = "Allow ephemeral port range inbound traffic from alb to ec2"
   vpc_id      = data.aws_vpc.vpc.id
 
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  revoke_rules_on_delete = true
+
   tags = merge(
     {
       Name      = "${local.prefix}-ec2-sg"
@@ -13,10 +19,6 @@ resource "aws_security_group" "ec2_sg" {
     },
     var.tags
   )
-
-  lifecycle {
-    create_before_destroy = true
-  }
 }
 
 resource "aws_security_group_rule" "ec2_ingress" {
