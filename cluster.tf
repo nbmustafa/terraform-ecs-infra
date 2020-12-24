@@ -1,8 +1,8 @@
 module "ecs-cluster" {
   source = "./modules/ecs-cluster"
 
-  environment             = terraform.workspace
-  alb_access_logs_bucket  = local.alb_access_logs_bucket
+  environment             = var.environment
+  # alb_access_logs_bucket  = local.alb_access_logs_bucket
   app_name                = local.app_name
   application_id          = local.application_id
   cost_centre             = local.cost_centre
@@ -19,4 +19,11 @@ module "ecs-cluster" {
   ondemand_percentage     = local.account_config["ondemand_percentage"]
   record_set_name         = local.account_config["record_set_name"]
   spot_price              = local.account_config["spot_price"]
+  
+  tags = {
+    ApplicationID = local.application_id
+    CostCentre    = local.cost_centre
+    ServiceName   = local.service_name
+    Environment   = var.environment
+  }
 }
