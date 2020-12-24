@@ -10,7 +10,7 @@ resource "aws_autoscaling_lifecycle_hook" "container_draining" {
   notification_target_arn = aws_sns_topic.container_draining_sns_topic.arn
   role_arn                = aws_iam_role.lifecycle_hook_iam_role.arn
 
-  depends_on = [ aws_iam_role_policy_attachment.lifecycle_hook_asn_access ]
+  # depends_on = [ aws_iam_role_policy_attachment.lifecycle_hook_asn_access_policy ]
 
   notification_metadata = <<EOF
   {
@@ -44,7 +44,7 @@ resource "aws_iam_role" "lifecycle_hook_iam_role" {
   EOF 
 }
 
-resource "aws_iam_role_policy_attachment" "lifecycle_hook_asn_access" {
+resource "aws_iam_role_policy_attachment" "lifecycle_hook_asn_access_policy" {
   role       = aws_iam_role.lifecycle_hook_iam_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AutoScalingNotificationAccessRole"
 }
@@ -141,12 +141,12 @@ resource "aws_iam_role" "container_draining_lambda_role" {
   EOF 
 }
 
-resource "aws_iam_role_policy_attachment" "container_draining_lambda_basic_exec" {
+resource "aws_iam_role_policy_attachment" "lambda_basic_exec_policy" {
   role       = aws_iam_role.container_draining_lambda_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
-resource "aws_iam_role_policy_attachment" "container_draining_lambda_autoscaling_notification" {
+resource "aws_iam_role_policy_attachment" "autoscaling_notification_policy" {
   role       = aws_iam_role.container_draining_lambda_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AutoScalingNotificationAccessRole"
 }
