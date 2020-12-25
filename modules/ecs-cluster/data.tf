@@ -37,7 +37,7 @@ data "aws_ami" "ecs_ami" {
 
 
 # data "template_file" "user_data" {
-#   template = file("${path.module}/ec2/user-data.sh")
+#   template = file("${path.module}/templates/user-data.sh")
 
 #   vars = {
 #     cluster_name = aws_ecs_cluster.ecs_cluster.name
@@ -49,7 +49,7 @@ data "aws_ami" "ecs_ami" {
 # }
 
 data "template_file" "user_data" {
-  template = file("${path.module}/ec2/default-user-data.sh")
+  template = file("${path.module}/templates/default-user-data.sh")
 
   vars = {
     ecs_cluster_name = aws_ecs_cluster.ecs_cluster.name

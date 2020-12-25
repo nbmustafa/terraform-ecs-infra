@@ -65,7 +65,7 @@ resource "aws_sns_topic_subscription" "container_draining_sns_subscription" {
 # ----------------------------------------------------------
 data "archive_file" "container_draining_zip" {
   type        = "zip"
-  output_path = "${path.module}/tmp/lambdas/container_draining-${sha256(file("${path.module}/lambdas/container_draining.py"))}.zip"
+  output_path = "${path.module}/lambdas/tmp/container_draining-${sha256(file("${path.module}/lambdas/container_draining.py"))}.zip"
   source_file = "${path.module}/lambdas/container_draining.py"
 }
 
