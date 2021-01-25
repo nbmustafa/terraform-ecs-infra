@@ -38,3 +38,6 @@ steps {
   // line to change
 }
 ```
+
+## to add overlay2 for storage performance when running docker follow this link:
+https://engineering.loyaltylion.com/using-docker-and-overlayfs-on-amazon-ecs-c0bd00cbb45d
