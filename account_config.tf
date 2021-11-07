@@ -9,6 +9,16 @@ locals {
   disable_api_termination = "false"
   # alb_access_logs_bucket  = "${local.account_id}-alb-log-bucket"
   proxy_host              = ""
+  
+  tags = {
+    ApplicationID   = local.application_id
+    ApplicationName = local.app_name
+    ServiceNAme     = local.service_name
+    Environment     = var.environment_name == "dev" || var.environment_name =="develop" ? "DEVELOPMENT" : upper(var.environment_name)
+    EnvironmentName = var.environment_name
+    SupportGroup    = local.support_group
+    CostCentre      = local.cost_centre
+  }
 
   account_configs = {
     develop = {
