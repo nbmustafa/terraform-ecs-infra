@@ -4,7 +4,7 @@
 
 PROXY_HOST=${proxy_host}
 PROXY_PORT=3128
-NO_PROXY=localhost,169.254.169.254,patching-server-hui.ext.national.com.au,.ext.national.com.au,.aus.thenational.com,.extnp.national.com.au
+NO_PROXY=localhost,169.254.169.254,patching-server-hui.ext.krd.com.au,.krd.com.au
 CLUSTER_NAME=${cluster_name}
 
 # Set Docker HTTP proxy
