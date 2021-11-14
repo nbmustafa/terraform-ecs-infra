@@ -21,7 +21,7 @@ locals {
   }
 
   account_configs = {
-    develop = {
+    dev = {
       asg_max_size         = "2"
       asg_min_size         = "1"
       asg_power_mgt_code   = "BH" //Bussinus Hours
