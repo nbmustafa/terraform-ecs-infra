@@ -17,17 +17,7 @@ locals {
       key                 = "ServiceName"
       value               = var.service_name
       propagate_at_launch = true
-    },
-    { 
-      key                 = "CostCentre"
-      value               = var.cost_centre
-      propagate_at_launch = true
-    },
-    { 
-      key                 = "PowerMgmt"
-      value               = var.PowerMgmt
-      propagate_at_launch = true
-    },
+    }
   ]
   
 }
